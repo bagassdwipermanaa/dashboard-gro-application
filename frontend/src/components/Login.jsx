@@ -69,7 +69,7 @@ function Login() {
                 className="w-full rounded-md border pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="masukkan username"
+                placeholder="Masukkan Username"
                 autoComplete="username"
               />
             </div>
