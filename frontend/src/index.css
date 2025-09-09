@@ -1,1 +1,80 @@
 ﻿@import "tailwindcss";
+
+/* Global app background with subtle grid + gradient */
+:root {
+  --grid-color: rgba(17, 24, 39, 0.06);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: linear-gradient(
+      180deg,
+      rgba(248, 250, 252, 0.9),
+      rgba(255, 255, 255, 0.95)
+    ),
+    radial-gradient(
+      1200px 600px at 20% -10%,
+      rgba(203, 213, 225, 0.35),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 100% 0%,
+      rgba(209, 213, 219, 0.25),
+      transparent 60%
+    ),
+    conic-gradient(
+      from 90deg at 50% 50%,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.6)
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 23px,
+      var(--grid-color) 24px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 23px,
+      var(--grid-color) 24px
+    );
+  background-blend-mode: normal, screen, screen, normal, normal, normal;
+}
+
+/* Smooth hover transitions for interactive elements */
+a,
+button {
+  transition: color 150ms ease, background-color 150ms ease,
+    border-color 150ms ease, box-shadow 200ms ease, transform 120ms ease;
+}
+
+button:active,
+a:active {
+  transform: translateY(1px);
+}
+
+/* Inputs and cards hover polish */
+input,
+select,
+textarea {
+  transition: box-shadow 200ms ease, border-color 150ms ease;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+}
+
+.card {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+}
