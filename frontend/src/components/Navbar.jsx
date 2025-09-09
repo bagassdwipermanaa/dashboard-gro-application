@@ -21,21 +21,34 @@ function Navbar() {
       onClick={closeAll}
     >
       <div
-        className="mx-auto max-w-6xl px-4 h-16 grid grid-cols-3 items-center"
+        className="mx-auto max-w-6xl px-4 h-20 flex items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <Link to="/" className="inline-flex items-center gap-2">
-          <div className="size-6 rounded bg-gray-900" />
-          <span className="font-semibold">Dashboard GRO</span>
+        <Link to="/" className="inline-flex items-center gap-3">
+          {/* Mobile logo */}
+          <img
+            src="/image/Logo_PLN-removebg-preview.png"
+            alt="Logo PLN"
+            className="block md:hidden h-10 w-auto object-contain"
+          />
+          {/* Desktop logo */}
+          <img
+            src="/image/logoplnes-removebg-preview.png"
+            alt="Logo"
+            className="hidden md:block h-40 w-auto object-contain"
+          />
+          {/* Remove text label as requested */}
         </Link>
 
-        <nav className="hidden md:flex items-center justify-center gap-6 text-sm col-start-2 col-end-3">
+        <nav className="hidden md:flex items-center gap-2 text-sm flex-1 justify-center overflow-x-auto no-scrollbar whitespace-nowrap">
           <NavLink
             to="/"
             end
             className={({ isActive }) =>
-              `hover:text-gray-900 ${
-                isActive ? "text-gray-900" : "text-gray-600"
+              `px-3 py-2 rounded-md transition-all duration-200 ${
+                isActive
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`
             }
           >
@@ -47,8 +60,10 @@ function Navbar() {
               <NavLink
                 to="/buku-tamu"
                 className={({ isActive }) =>
-                  `hover:text-gray-900 ${
-                    isActive ? "text-gray-900" : "text-gray-600"
+                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                    isActive
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`
                 }
               >
@@ -57,8 +72,10 @@ function Navbar() {
               <NavLink
                 to="/history-tamu"
                 className={({ isActive }) =>
-                  `hover:text-gray-900 ${
-                    isActive ? "text-gray-900" : "text-gray-600"
+                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                    isActive
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`
                 }
               >
@@ -67,8 +84,10 @@ function Navbar() {
               <NavLink
                 to="/log-telepon"
                 className={({ isActive }) =>
-                  `hover:text-gray-900 ${
-                    isActive ? "text-gray-900" : "text-gray-600"
+                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                    isActive
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`
                 }
               >
@@ -77,8 +96,10 @@ function Navbar() {
               <NavLink
                 to="/notes"
                 className={({ isActive }) =>
-                  `hover:text-gray-900 ${
-                    isActive ? "text-gray-900" : "text-gray-600"
+                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                    isActive
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`
                 }
               >
@@ -88,8 +109,10 @@ function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => toggle("list")}
-                  className={`inline-flex items-center gap-1 ${
-                    openMenu === "list" ? "text-gray-900" : "text-gray-600"
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
+                    openMenu === "list"
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   List
@@ -124,8 +147,10 @@ function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => toggle("report")}
-                  className={`inline-flex items-center gap-1 ${
-                    openMenu === "report" ? "text-gray-900" : "text-gray-600"
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
+                    openMenu === "report"
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   Report
@@ -160,8 +185,10 @@ function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => toggle("master")}
-                  className={`inline-flex items-center gap-1 ${
-                    openMenu === "master" ? "text-gray-900" : "text-gray-600"
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
+                    openMenu === "master"
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   Data Master
@@ -196,12 +223,12 @@ function Navbar() {
           ) : null}
         </nav>
 
-        <div className="flex items-center gap-3 justify-end col-start-3 col-end-4">
+        <div className="flex items-center gap-3 justify-end">
           {!user ? (
             <NavLink
               to="/login"
               className={({ isActive }) =>
-                `inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                `inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-gray-800 text-white"
                     : "bg-gray-900 text-white hover:bg-gray-800"
@@ -214,7 +241,7 @@ function Navbar() {
             <div className="relative">
               <button
                 onClick={() => toggle("user")}
-                className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800"
+                className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all duration-200"
               >
                 {(user.username || "ADMIN").toUpperCase()}
                 <svg
@@ -245,7 +272,9 @@ function Navbar() {
                     onClick={() => {
                       closeAll();
                       logout();
-                      navigate("/");
+                      navigate("/welcome", {
+                        state: { type: "logout", next: "/" },
+                      });
                     }}
                     className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                   >

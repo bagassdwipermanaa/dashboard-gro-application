@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+// no toast, we route to /welcome for animation
 
 // Dummy users untuk demo login dengan username
 const dummyUsers = [
@@ -35,9 +36,10 @@ function Login() {
       return;
     }
 
-    // Set auth state dan redirect ke dashboard/home setelah login berhasil
+    // Set auth state, toast, dan redirect
     login({ username: matchedUser.username });
-    navigate("/");
+    // arahkan ke halaman welcome untuk animasi penuh
+    navigate("/welcome", { state: { type: "login", next: "/" } });
   }
 
   return (
