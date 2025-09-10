@@ -19,6 +19,7 @@ function BukuTamu() {
   const [dataTamu, setDataTamu] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [selectedTamu, setSelectedTamu] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     tamu: null,
@@ -76,6 +77,11 @@ function BukuTamu() {
   // Filter data based on all filter criteria
   useEffect(() => {
     let filtered = [...dataTamu];
+
+    // Hanya tampilkan status tamu Open atau Entry
+    filtered = filtered.filter(
+      (tamu) => tamu.statusTamu === "Open" || tamu.statusTamu === "Entry"
+    );
 
     // Search term filter (searches across multiple fields)
     if (searchTerm) {
@@ -181,20 +187,60 @@ function BukuTamu() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const updateStatusTamu = (index, newStatus) => {
-    const updatedData = [...dataTamu];
-    updatedData[index].statusTamu = newStatus;
-    setDataTamu(updatedData);
+  const updateStatusTamu = async (index, newStatus) => {
+    try {
+      const tamu = dataTamu[index];
+      const idvisit = tamu?.idvisit;
+      if (!idvisit) throw new Error("ID kunjungan tidak ditemukan");
+      const res = await fetch(
+        `/api/tamu/${encodeURIComponent(idvisit)}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statustamu: newStatus }),
+        }
+      );
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || `Gagal update status (HTTP ${res.status})`);
+      }
+      const updated = [...dataTamu];
+      updated[index].statusTamu = newStatus;
+      // Jika status menjadi Closed, hapus dari daftar Buku Tamu (akan terlihat di History)
+      const finalList =
+        newStatus === "Closed"
+          ? updated.filter((_, i) => i !== index)
+          : updated;
+      setDataTamu(finalList);
+    } catch (err) {
+      console.error("Update status tamu gagal:", err);
+      alert(`Gagal mengubah status: ${err.message}`);
+    }
   };
 
   const handleDeleteClick = (tamu, index) => {
     setDeleteModal({ isOpen: true, tamu, index });
   };
 
-  const handleDeleteConfirm = () => {
-    const updatedData = dataTamu.filter((_, i) => i !== deleteModal.index);
-    setDataTamu(updatedData);
-    setDeleteModal({ isOpen: false, tamu: null, index: null });
+  const handleDeleteConfirm = async () => {
+    try {
+      const idvisit = deleteModal.tamu?.idvisit;
+      if (!idvisit) throw new Error("ID kunjungan tidak ditemukan");
+      const res = await fetch(`/api/tamu/${encodeURIComponent(idvisit)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || `Gagal menghapus (HTTP ${res.status})`);
+      }
+      const updatedData = dataTamu.filter((_, i) => i !== deleteModal.index);
+      setDataTamu(updatedData);
+    } catch (err) {
+      console.error("Hapus tamu gagal:", err);
+      alert(`Gagal menghapus data: ${err.message}`);
+    } finally {
+      setDeleteModal({ isOpen: false, tamu: null, index: null });
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -317,7 +363,6 @@ function BukuTamu() {
               <option value="">Semua Status</option>
               <option value="Open">Open</option>
               <option value="Entry">Entry</option>
-              <option value="Closed">Closed</option>
             </select>
           </div>
 
@@ -651,7 +696,7 @@ function BukuTamu() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/buku-tamu/edit/${tamu.id}`, {
+                            navigate(`/buku-tamu/edit/${tamu.idvisit}`, {
                               state: { data: tamu },
                             });
                           }}
@@ -752,7 +797,8 @@ function BukuTamu() {
                     <img
                       src={selectedTamu.fotoTamu}
                       alt="Foto Tamu"
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover rounded-lg cursor-zoom-in"
+                      onClick={() => setImagePreview(selectedTamu.fotoTamu)}
                     />
                   ) : (
                     <svg
@@ -836,7 +882,10 @@ function BukuTamu() {
                     <img
                       src={selectedTamu.fotoKartuIdentitas}
                       alt="Foto Kartu Identitas"
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover rounded-lg cursor-zoom-in"
+                      onClick={() =>
+                        setImagePreview(selectedTamu.fotoKartuIdentitas)
+                      }
                     />
                   ) : (
                     <svg
@@ -927,6 +976,30 @@ function BukuTamu() {
                 <p className="text-sm text-gray-900">ADMIN POS 1A</p>
               </div>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Image Lightbox */}
+      {imagePreview ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/80"
+            onClick={() => setImagePreview(null)}
+          />
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="w-auto h-auto max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <button
+              onClick={() => setImagePreview(null)}
+              className="absolute -top-3 -right-3 bg-white text-gray-700 rounded-full p-2 shadow hover:bg-gray-100"
+              aria-label="Tutup"
+            >
+              ✕
+            </button>
           </div>
         </div>
       ) : null}

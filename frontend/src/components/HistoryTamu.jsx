@@ -9,6 +9,7 @@ function HistoryTamu() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [selectedTamu, setSelectedTamu] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     tamu: null,
@@ -40,6 +41,8 @@ function HistoryTamu() {
           waktuBerkunjung: r.jamdatang || "",
           waktuKeluar: r.jamkeluar || "",
           noIdTamu: r.noid || "",
+          fotoTamu: r.foto || "",
+          fotoKartuIdentitas: r.fotoid || "",
           statusTamu: r.statustamu || "",
           status: r.status || "",
           keterangan: r.ket || r.cattamu || "",
@@ -57,6 +60,9 @@ function HistoryTamu() {
   // Filter data based on all filter criteria
   useEffect(() => {
     let filtered = [...dataTamu];
+
+    // Tampilkan hanya yang sudah Closed di halaman History
+    filtered = filtered.filter((tamu) => tamu.statusTamu === "Closed");
 
     // Search term filter (searches across multiple fields)
     if (searchTerm) {
@@ -154,6 +160,39 @@ function HistoryTamu() {
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, tamu: null, index: null });
+  };
+
+  const updateStatusTamu = async (index, newStatus) => {
+    try {
+      const tamu = filteredData[index];
+      const idvisit = tamu?.idvisit;
+      if (!idvisit) throw new Error("ID kunjungan tidak ditemukan");
+      const res = await fetch(
+        `/api/tamu/${encodeURIComponent(idvisit)}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statustamu: newStatus }),
+        }
+      );
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || `Gagal update status (HTTP ${res.status})`);
+      }
+      // Perbarui data sumber
+      const updatedAll = dataTamu.map((t) =>
+        t.idvisit === idvisit ? { ...t, statusTamu: newStatus } : t
+      );
+      setDataTamu(updatedAll);
+      // Karena halaman History hanya menampilkan Closed, jika berubah ke Open/Entry maka menghilang dari daftar
+      const updatedFiltered = updatedAll.filter(
+        (t) => t.statusTamu === "Closed"
+      );
+      setFilteredData(updatedFiltered);
+    } catch (err) {
+      console.error("Update status history gagal:", err);
+      alert(`Gagal mengubah status: ${err.message}`);
+    }
   };
 
   const clearAllFilters = () => {
@@ -512,9 +551,23 @@ function HistoryTamu() {
                     <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
                     <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
                     <td className="px-3 py-2">
-                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                        {tamu.statusTamu || "-"}
-                      </span>
+                      <select
+                        value={tamu.statusTamu || ""}
+                        onChange={(e) =>
+                          updateStatusTamu(index, e.target.value)
+                        }
+                        className={`px-2 py-1 rounded-full text-xs border-0 ${
+                          tamu.statusTamu === "Closed"
+                            ? "bg-red-100 text-red-800"
+                            : tamu.statusTamu === "Open"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        <option value="Open">Open</option>
+                        <option value="Entry">Entry</option>
+                        <option value="Closed">Closed</option>
+                      </select>
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
@@ -548,7 +601,7 @@ function HistoryTamu() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/buku-tamu/edit/${tamu.id}`, {
+                            navigate(`/buku-tamu/edit/${tamu.idvisit}`, {
                               state: { data: tamu },
                             });
                           }}
@@ -599,216 +652,252 @@ function HistoryTamu() {
         </div>
       </div>
 
-      {/* Detail View */}
+      {/* Detail View Modal */}
       {selectedTamu && (
-        <div className="rounded-xl border bg-white p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Detail Data Tamu</h3>
-            <button
-              onClick={() => setSelectedTamu(null)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setSelectedTamu(null)}
+          />
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-auto rounded-xl border bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Detail Data Tamu</h3>
+              <button
+                onClick={() => setSelectedTamu(null)}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Foto
-              </label>
-              <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
-                {selectedTamu.fotoTamu ? (
-                  <img
-                    src={selectedTamu.fotoTamu}
-                    alt="Foto Tamu"
-                    className="w-full h-full object-cover rounded-lg"
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
                   />
-                ) : (
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Foto
+                </label>
+                <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                  {selectedTamu.fotoTamu ? (
+                    <img
+                      src={selectedTamu.fotoTamu}
+                      alt="Foto Tamu"
+                      className="w-full h-full object-cover rounded-lg cursor-zoom-in"
+                      onClick={() => setImagePreview(selectedTamu.fotoTamu)}
                     />
-                  </svg>
-                )}
+                  ) : (
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.nama}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.nama}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Instansi
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.instansi}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Instansi
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.instansi}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Keperluan
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.keperluan}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Keperluan
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.keperluan}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tujuan
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.tujuan}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tujuan
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.tujuan}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Divisi
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.divisi}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Divisi
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.divisi}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Jenis Kartu Identitas
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.jenisKartu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Jenis Kartu Identitas
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.jenisKartu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                No. Kartu Identitas
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.noIdTamu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  No. Kartu Identitas
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.noIdTamu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Foto Kartu Identitas
-              </label>
-              <div className="w-24 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                {selectedTamu.fotoKartuIdentitas ? (
-                  <img
-                    src={selectedTamu.fotoKartuIdentitas}
-                    alt="Foto Kartu Identitas"
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <svg
-                    className="w-6 h-6 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Foto Kartu Identitas
+                </label>
+                <div className="w-24 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                  {selectedTamu.fotoKartuIdentitas ? (
+                    <img
+                      src={selectedTamu.fotoKartuIdentitas}
+                      alt="Foto Kartu Identitas"
+                      className="w-full h-full object-cover rounded-lg cursor-zoom-in"
+                      onClick={() =>
+                        setImagePreview(selectedTamu.fotoKartuIdentitas)
+                      }
                     />
-                  </svg>
-                )}
+                  ) : (
+                    <svg
+                      className="w-6 h-6 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kategori Tamu
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.kategoriTamu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kategori Tamu
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.kategoriTamu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Waktu Berkunjung
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.waktuBerkunjung || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Waktu Berkunjung
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.waktuBerkunjung || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Waktu Keluar
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.waktuKeluar || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Waktu Keluar
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.waktuKeluar || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                No. ID Tamu
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.noIdTamu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  No. ID Tamu
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.noIdTamu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <span
-                className={`inline-flex px-2 py-1 rounded-full text-xs ${
-                  selectedTamu.status === "Clear"
-                    ? "bg-green-100 text-green-800"
-                    : selectedTamu.status === "Warning"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : selectedTamu.status === "Attention"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {selectedTamu.status || "-"}
-              </span>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <span
+                  className={`inline-flex px-2 py-1 rounded-full text-xs ${
+                    selectedTamu.status === "Clear"
+                      ? "bg-green-100 text-green-800"
+                      : selectedTamu.status === "Warning"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : selectedTamu.status === "Attention"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {selectedTamu.status || "-"}
+                </span>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Keterangan
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.keterangan || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Keterangan
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.keterangan || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Pos GRO
-              </label>
-              <p className="text-sm text-gray-900">ADMIN POS 1A</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pos GRO
+                </label>
+                <p className="text-sm text-gray-900">ADMIN POS 1A</p>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Image Lightbox */}
+      {imagePreview ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/80"
+            onClick={() => setImagePreview(null)}
+          />
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="w-auto h-auto max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <button
+              onClick={() => setImagePreview(null)}
+              className="absolute -top-3 -right-3 bg-white text-gray-700 rounded-full p-2 shadow hover:bg-gray-100"
+              aria-label="Tutup"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Delete Confirmation Modal */}
       <DeleteModal

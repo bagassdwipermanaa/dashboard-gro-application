@@ -19,17 +19,48 @@ function List() {
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Load data from localStorage on component mount
+  // Load data from backend on component mount
   useEffect(() => {
-    const savedDataTamu = localStorage.getItem("dataTeleponTamu");
-    const savedDataInternal = localStorage.getItem("dataTeleponInternal");
-
-    if (savedDataTamu) {
-      setDataTeleponTamu(JSON.parse(savedDataTamu));
-    }
-    if (savedDataInternal) {
-      setDataTeleponInternal(JSON.parse(savedDataInternal));
-    }
+    const load = async () => {
+      try {
+        const [resTamu, resInternal] = await Promise.all([
+          fetch("/api/phonebook/guests"),
+          fetch("/api/phonebook/internal"),
+        ]);
+        if (!resTamu.ok || !resInternal.ok)
+          throw new Error(`HTTP ${resTamu.status}/${resInternal.status}`);
+        const [tamuRows, internalRows] = await Promise.all([
+          resTamu.json(),
+          resInternal.json(),
+        ]);
+        const tamu = tamuRows.map((r) => ({
+          id: r.tlp1, // use primary key as id
+          nama: r.nama || "",
+          instansi: r.instansi || "",
+          noTlp1: r.tlp1 || "",
+          noTlp2: r.tlp2 || "",
+          alamat: r.alamat || "",
+          fax: r.fax || "",
+          email: r.email || "",
+        }));
+        const internal = internalRows.map((r) => ({
+          id: r.idtlp,
+          idTlp: r.idtlp,
+          nama: r.nama || "",
+          jabatan: r.jabatan || "",
+          divisi: r.divisi || "",
+          noTlp1: r.tlp1 || "",
+          noTlp2: r.tlp2 || "",
+          extension: r.extension || "",
+          email: r.email || "",
+        }));
+        setDataTeleponTamu(tamu);
+        setDataTeleponInternal(internal);
+      } catch (e) {
+        console.error("Gagal memuat buku telepon:", e);
+      }
+    };
+    load();
   }, []);
 
   // Handle tab change from URL parameters
@@ -80,20 +111,36 @@ function List() {
     setDeleteModal({ isOpen: true, data, index, type });
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     const { type, index } = deleteModal;
-
-    if (type === "tamu") {
-      const updatedData = dataTeleponTamu.filter((_, i) => i !== index);
-      setDataTeleponTamu(updatedData);
-      localStorage.setItem("dataTeleponTamu", JSON.stringify(updatedData));
-    } else {
-      const updatedData = dataTeleponInternal.filter((_, i) => i !== index);
-      setDataTeleponInternal(updatedData);
-      localStorage.setItem("dataTeleponInternal", JSON.stringify(updatedData));
+    try {
+      if (type === "tamu") {
+        const id = dataTeleponTamu[index]?.noTlp1 || dataTeleponTamu[index]?.id;
+        if (!id) throw new Error("ID tidak ditemukan");
+        const res = await fetch(
+          `/api/phonebook/guests/${encodeURIComponent(id)}`,
+          { method: "DELETE" }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const updatedData = dataTeleponTamu.filter((_, i) => i !== index);
+        setDataTeleponTamu(updatedData);
+      } else {
+        const id =
+          dataTeleponInternal[index]?.idTlp || dataTeleponInternal[index]?.id;
+        if (!id) throw new Error("ID tidak ditemukan");
+        const res = await fetch(
+          `/api/phonebook/internal/${encodeURIComponent(id)}`,
+          { method: "DELETE" }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const updatedData = dataTeleponInternal.filter((_, i) => i !== index);
+        setDataTeleponInternal(updatedData);
+      }
+    } catch (e) {
+      alert(`Gagal menghapus: ${e.message}`);
+    } finally {
+      setDeleteModal({ isOpen: false, data: null, index: null, type: null });
     }
-
-    setDeleteModal({ isOpen: false, data: null, index: null, type: null });
   };
 
   const handleDeleteCancel = () => {
@@ -450,14 +497,7 @@ function List() {
           isOpen={deleteModal.isOpen}
           onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
-          title={`Hapus ${
-            deleteModal.type === "tamu"
-              ? "Buku Telepon Tamu"
-              : "Buku Telepon Internal"
-          }`}
-          message={`Apakah Anda yakin ingin menghapus data "${
-            deleteModal.data?.nama || deleteModal.data?.idTlp
-          }"?`}
+          tamuName={deleteModal.data?.nama || deleteModal.data?.idTlp || ""}
         />
       )}
     </div>

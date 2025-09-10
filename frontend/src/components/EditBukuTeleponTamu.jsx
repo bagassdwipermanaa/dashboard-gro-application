@@ -38,26 +38,24 @@ function EditBukuTeleponTamu() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Get existing data
-    const existingData = JSON.parse(
-      localStorage.getItem("dataTeleponTamu") || "[]"
-    );
-
-    // Update the specific data
-    const updatedData = existingData.map((item) =>
-      item.id === data.id
-        ? { ...item, ...formData, updatedAt: new Date().toISOString() }
-        : item
-    );
-
-    // Save to localStorage
-    localStorage.setItem("dataTeleponTamu", JSON.stringify(updatedData));
-
-    // Navigate back to list page
-    navigate("/list");
+    try {
+      const id = data?.noTlp1 || data?.id;
+      if (!id) throw new Error("ID kontak tidak ditemukan");
+      const res = await fetch(
+        `/api/phonebook/guests/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      navigate("/list?tab=tamu");
+    } catch (err) {
+      alert(`Gagal memperbarui kontak tamu: ${err.message}`);
+    }
   };
 
   const handleCancel = () => {

@@ -24,29 +24,20 @@ function TambahLogTelepon() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Generate unique ID
-    const newLog = {
-      ...formData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-
-    // Get existing data
-    const existingData = JSON.parse(
-      localStorage.getItem("dataLogTelepon") || "[]"
-    );
-
-    // Add new log
-    const updatedData = [...existingData, newLog];
-
-    // Save to localStorage
-    localStorage.setItem("dataLogTelepon", JSON.stringify(updatedData));
-
-    // Navigate back to log telepon page
-    navigate("/log-telepon");
+    try {
+      const payload = { ...formData };
+      const res = await fetch("/api/logs/telepon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      navigate("/log-telepon");
+    } catch (err) {
+      alert(`Gagal menyimpan log: ${err.message}`);
+    }
   };
 
   const handleCancel = () => {

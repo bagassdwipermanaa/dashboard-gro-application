@@ -34,27 +34,22 @@ function EditNotes() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Get existing data
-    const existingData = JSON.parse(localStorage.getItem("dataNotes") || "[]");
-
-    // Update the specific note
-    const updatedData = existingData.map((note) =>
-      note.id === noteData.id
-        ? { ...note, ...formData, updatedAt: new Date().toISOString() }
-        : note
-    );
-
-    // Save to localStorage
-    localStorage.setItem("dataNotes", JSON.stringify(updatedData));
-
-    // Dispatch custom event to update navbar count
-    window.dispatchEvent(new CustomEvent("notesUpdated"));
-
-    // Navigate back to notes page
-    navigate("/notes");
+    try {
+      const id = noteData?.idnotes || noteData?.id;
+      if (!id) throw new Error("ID notes tidak ditemukan");
+      const res = await fetch(`/api/notes/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      window.dispatchEvent(new CustomEvent("notesUpdated"));
+      navigate("/notes");
+    } catch (err) {
+      alert(`Gagal memperbarui notes: ${err.message}`);
+    }
   };
 
   const handleCancel = () => {

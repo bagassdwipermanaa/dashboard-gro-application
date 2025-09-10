@@ -7,13 +7,28 @@ function Reports() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem("dataTamu");
-    if (saved) {
-      setDataTamu(JSON.parse(saved));
-    }
+    fetchDataTamu();
   }, []);
+
+  const fetchDataTamu = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:3004/api/tamu");
+      if (response.ok) {
+        const data = await response.json();
+        setDataTamu(data);
+      } else {
+        console.error("Gagal mengambil data tamu");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     let rows = [...dataTamu];
@@ -69,13 +84,13 @@ function Reports() {
         r.tujuan || "",
         r.divisi || "",
         r.jenisKartu || "",
-        r.kategoriTamu || "",
+        r.cattamu || "", // Menggunakan cattamu dari database
         r.waktuBerkunjung || "",
         r.waktuKeluar || "",
         r.noIdTamu || "",
         r.statusTamu || "",
         r.status || "",
-        r.keterangan || "",
+        r.ket || "", // Menggunakan ket dari database
         user?.noIndukGRO || "-",
         user?.posGRO || "ADMIN POS 1A",
       ];
@@ -136,7 +151,9 @@ function Reports() {
       <div className="rounded-xl border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b flex items-center justify-between">
           <div className="text-sm text-gray-600">Hasil</div>
-          <div className="text-xs text-gray-400">{filtered.length} hasil</div>
+          <div className="text-xs text-gray-400">
+            {loading ? "Loading..." : `${filtered.length} hasil`}
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -169,10 +186,19 @@ function Reports() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading ? (
                 <tr>
                   <td
-                    colSpan={13}
+                    colSpan={15}
+                    className="px-3 py-10 text-center text-gray-500"
+                  >
+                    Loading data...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={15}
                     className="px-3 py-10 text-center text-gray-500"
                   >
                     No results found.
@@ -187,13 +213,13 @@ function Reports() {
                     <td className="px-3 py-2">{r.tujuan}</td>
                     <td className="px-3 py-2">{r.divisi}</td>
                     <td className="px-3 py-2">{r.jenisKartu || "-"}</td>
-                    <td className="px-3 py-2">{r.kategoriTamu || "-"}</td>
+                    <td className="px-3 py-2">{r.cattamu || "-"}</td>
                     <td className="px-3 py-2">{r.waktuBerkunjung || "-"}</td>
                     <td className="px-3 py-2">{r.waktuKeluar || "-"}</td>
                     <td className="px-3 py-2">{r.noIdTamu || "-"}</td>
                     <td className="px-3 py-2">{r.statusTamu || "-"}</td>
                     <td className="px-3 py-2">{r.status || "-"}</td>
-                    <td className="px-3 py-2">{r.keterangan || "-"}</td>
+                    <td className="px-3 py-2">{r.ket || "-"}</td>
                     <td className="px-3 py-2">{user?.noIndukGRO || "-"}</td>
                     <td className="px-3 py-2">
                       {user?.posGRO || "ADMIN POS 1A"}

@@ -13,7 +13,9 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3004")
 const corsOptions = allowedOrigins.length ? { origin: allowedOrigins } : {};
 
 app.use(cors(corsOptions));
-app.use(express.json());
+// Increase payload limits to handle base64 images from frontend
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 let dbPool;
 
@@ -72,7 +74,8 @@ function mapGuestPayloadToDb(payload) {
     divisi: payload.divisi ?? null,
     jenisid: payload.jenisKartu ?? null,
     noid: payload.noIdTamu ?? null,
-    cattamu: payload.keterangan ?? null,
+    // cattamu is used to store guest category
+    cattamu: payload.kategoriTamu ?? null,
     jamdatang: payload.waktuBerkunjung
       ? new Date(payload.waktuBerkunjung)
       : null,
@@ -99,6 +102,80 @@ function generateIdVisit() {
   const s = String(now.getSeconds()).padStart(2, "0");
   const ms = String(now.getMilliseconds()).padStart(3, "0");
   return `VIS${y}${m}${d}${h}${min}${s}${ms}`.slice(0, 15);
+}
+
+function generateIdBukuTlp() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const h = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  const s = String(now.getSeconds()).padStart(2, "0");
+  return `TL${y}${m}${d}${h}${min}${s}`;
+}
+
+function generateIdNotes() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const h = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  const s = String(now.getSeconds()).padStart(2, "0");
+  return `NT${y}${m}${d}${h}${min}${s}`;
+}
+
+function mapNotesPayloadToDb(payload) {
+  return {
+    idnotes: payload.idnotes,
+    dari: payload.dari ?? null,
+    tujuan: payload.tujuan ?? null,
+    tanggal: payload.tanggal ? new Date(payload.tanggal) : null,
+    pesan: payload.pesan ?? null,
+    status: payload.status ?? null,
+  };
+}
+
+function mapPhoneLogPayloadToDb(payload) {
+  return {
+    idbukutlp: payload.idbukutlp,
+    nama_penelpon: payload.namaPenelpon ?? null,
+    no_penelpon: payload.noPenelpon ?? null,
+    nama_dituju: payload.namaDituju ?? null,
+    no_dituju: payload.noDituju ?? null,
+    tanggal: payload.tanggal ? new Date(payload.tanggal) : null,
+    jam: payload.jam ?? null,
+    pesan: payload.pesan ?? null,
+    ket: payload.keterangan ?? null,
+    status: payload.status ?? null,
+    statusinout: payload.telpKeluarMasuk ?? null,
+  };
+}
+
+function mapPhonebookGuestPayloadToDb(payload) {
+  return {
+    tlp1: payload.noTlp1, // PK
+    nama: payload.nama ?? null,
+    instansi: payload.instansi ?? null,
+    tlp2: payload.noTlp2 ?? null,
+    alamat: payload.alamat ?? null,
+    fax: payload.fax ?? null,
+    email: payload.email ?? null,
+  };
+}
+
+function mapPhonebookInternalPayloadToDb(payload) {
+  return {
+    idtlp: payload.idTlp, // PK
+    nama: payload.nama ?? null,
+    jabatan: payload.jabatan ?? null,
+    divisi: payload.divisi ?? null,
+    tlp1: payload.noTlp1 ?? null,
+    tlp2: payload.noTlp2 ?? null,
+    extension: payload.extension ?? null,
+    email: payload.email ?? null,
+  };
 }
 
 // Create guest
@@ -133,7 +210,7 @@ app.get("/tamu", async (req, res) => {
     const conn = await dbPool.getConnection();
     try {
       const [rows] = await conn.query(
-        "SELECT idvisit, namatamu, instansi, keperluan, tujuan, divisi, jenisid, noid, DATE_FORMAT(jamdatang, '%Y-%m-%d %H:%i:%s') AS jamdatang, DATE_FORMAT(jamkeluar, '%Y-%m-%d %H:%i:%s') AS jamkeluar, status, statustamu FROM tabletamu ORDER BY jamdatang DESC LIMIT 100"
+        "SELECT idvisit, namatamu, instansi, keperluan, tujuan, divisi, jenisid, noid, cattamu, ket, foto, fotoid, DATE_FORMAT(jamdatang, '%Y-%m-%d %H:%i:%s') AS jamdatang, DATE_FORMAT(jamkeluar, '%Y-%m-%d %H:%i:%s') AS jamkeluar, status, statustamu FROM tabletamu ORDER BY jamdatang DESC LIMIT 100"
       );
       res.json(rows);
     } finally {
@@ -142,6 +219,614 @@ app.get("/tamu", async (req, res) => {
   } catch (err) {
     console.error("List tamu error:", err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Phone logs endpoints
+// Create phone log
+app.post("/logs/telepon", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const idbukutlp = generateIdBukuTlp();
+      const dbRow = mapPhoneLogPayloadToDb({ ...req.body, idbukutlp });
+      const fields = Object.keys(dbRow);
+      const values = Object.values(dbRow);
+      const placeholders = fields.map(() => "?").join(",");
+      const sql = `INSERT INTO bukutelpon (${fields
+        .map((f) => `\`${f}\``)
+        .join(",")}) VALUES (${placeholders})`;
+      await conn.query(sql, values);
+      res.status(201).json({ idbukutlp });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Create phone log error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List phone logs (basic, latest 200)
+app.get("/logs/telepon", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "SELECT idbukutlp, nama_penelpon, no_penelpon, nama_dituju, no_dituju, DATE_FORMAT(tanggal, '%Y-%m-%d') AS tanggal, DATE_FORMAT(jam, '%H:%i') AS jam, pesan, ket, status, statusinout FROM bukutelpon ORDER BY tanggal DESC, jam DESC LIMIT 200"
+      );
+      res.json(rows);
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("List phone logs error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update phone log
+app.put("/logs/telepon/:idbukutlp", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idbukutlp } = req.params;
+    const dbRow = mapPhoneLogPayloadToDb({ ...req.body, idbukutlp });
+    const { idbukutlp: _, ...updateRow } = dbRow;
+    const fields = Object.keys(updateRow);
+    const values = Object.values(updateRow);
+    const setClause = fields.map((f) => `\`${f}\` = ?`).join(",");
+    const sql = `UPDATE bukutelpon SET ${setClause} WHERE idbukutlp = ?`;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(sql, [...values, idbukutlp]);
+      if ((result?.affectedRows ?? 0) === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update phone log error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete phone log
+app.delete("/logs/telepon/:idbukutlp", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idbukutlp } = req.params;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(
+        "DELETE FROM bukutelpon WHERE idbukutlp = ?",
+        [idbukutlp]
+      );
+      const affected = result?.affectedRows ?? 0;
+      if (affected === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true, deleted: affected });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Delete phone log error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Notes endpoints
+app.post("/notes", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const idnotes = generateIdNotes();
+      const dbRow = mapNotesPayloadToDb({ ...req.body, idnotes });
+      const fields = Object.keys(dbRow);
+      const values = Object.values(dbRow);
+      const placeholders = fields.map(() => "?").join(",");
+      const sql = `INSERT INTO notes (${fields
+        .map((f) => `\`${f}\``)
+        .join(",")}) VALUES (${placeholders})`;
+      await conn.query(sql, values);
+      res.status(201).json({ idnotes });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Create notes error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/notes", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "SELECT idnotes, dari, tujuan, DATE_FORMAT(tanggal, '%Y-%m-%d') AS tanggal, pesan, status FROM notes ORDER BY tanggal DESC, idnotes DESC LIMIT 200"
+      );
+      res.json(rows);
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("List notes error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/notes/:idnotes", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idnotes } = req.params;
+    const dbRow = mapNotesPayloadToDb({ ...req.body, idnotes });
+    const { idnotes: _, ...updateRow } = dbRow;
+    const fields = Object.keys(updateRow);
+    const values = Object.values(updateRow);
+    const setClause = fields.map((f) => `\`${f}\` = ?`).join(",");
+    const sql = `UPDATE notes SET ${setClause} WHERE idnotes = ?`;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(sql, [...values, idnotes]);
+      if ((result?.affectedRows ?? 0) === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update notes error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/notes/:idnotes", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idnotes } = req.params;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query("DELETE FROM notes WHERE idnotes = ?", [
+        idnotes,
+      ]);
+      const affected = result?.affectedRows ?? 0;
+      if (affected === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true, deleted: affected });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Delete notes error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Phonebook - Guests
+app.get("/phonebook/guests", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "SELECT nama, instansi, tlp1, tlp2, alamat, fax, email FROM bukutlptamu ORDER BY nama ASC"
+      );
+      res.json(rows);
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("List phonebook guests error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/phonebook/guests", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const dbRow = mapPhonebookGuestPayloadToDb(req.body);
+      const fields = Object.keys(dbRow);
+      const values = Object.values(dbRow);
+      const placeholders = fields.map(() => "?").join(",");
+      const sql = `INSERT INTO bukutlptamu (${fields
+        .map((f) => `\`${f}\``)
+        .join(",")}) VALUES (${placeholders})`;
+      await conn.query(sql, values);
+      res.status(201).json({ tlp1: dbRow.tlp1 });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Create phonebook guest error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/phonebook/guests/:tlp1", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { tlp1 } = req.params;
+    const dbRow = mapPhonebookGuestPayloadToDb({ ...req.body, noTlp1: tlp1 });
+    const { tlp1: _, ...updateRow } = dbRow;
+    const fields = Object.keys(updateRow);
+    const values = Object.values(updateRow);
+    const setClause = fields.map((f) => `\`${f}\` = ?`).join(",");
+    const sql = `UPDATE bukutlptamu SET ${setClause} WHERE tlp1 = ?`;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(sql, [...values, tlp1]);
+      if ((result?.affectedRows ?? 0) === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update phonebook guest error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/phonebook/guests/:tlp1", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { tlp1 } = req.params;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(
+        "DELETE FROM bukutlptamu WHERE tlp1 = ?",
+        [tlp1]
+      );
+      const affected = result?.affectedRows ?? 0;
+      if (affected === 0)
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      res.json({ success: true, deleted: affected });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Delete phonebook guest error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Phonebook - Internal
+app.get("/phonebook/internal", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "SELECT idtlp, nama, jabatan, divisi, tlp1, tlp2, extension, email FROM bukutlpinternal ORDER BY nama ASC"
+      );
+      res.json(rows);
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("List phonebook internal error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/phonebook/internal", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const dbRow = mapPhonebookInternalPayloadToDb(req.body);
+      const fields = Object.keys(dbRow);
+      const values = Object.values(dbRow);
+      const placeholders = fields.map(() => "?").join(",");
+      const sql = `INSERT INTO bukutlpinternal (${fields
+        .map((f) => `\`${f}\``)
+        .join(",")}) VALUES (${placeholders})`;
+      await conn.query(sql, values);
+      res.status(201).json({ idtlp: dbRow.idtlp });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Create phonebook internal error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/phonebook/internal/:idtlp", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idtlp } = req.params;
+    const dbRow = mapPhonebookInternalPayloadToDb({
+      ...req.body,
+      idTlp: idtlp,
+    });
+    const { idtlp: _, ...updateRow } = dbRow;
+    const fields = Object.keys(updateRow);
+    const values = Object.values(updateRow);
+    const setClause = fields.map((f) => `\`${f}\` = ?`).join(",");
+    const sql = `UPDATE bukutlpinternal SET ${setClause} WHERE idtlp = ?`;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(sql, [...values, idtlp]);
+      if ((result?.affectedRows ?? 0) === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update phonebook internal error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/phonebook/internal/:idtlp", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idtlp } = req.params;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(
+        "DELETE FROM bukutlpinternal WHERE idtlp = ?",
+        [idtlp]
+      );
+      const affected = result?.affectedRows ?? 0;
+      if (affected === 0)
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      res.json({ success: true, deleted: affected });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Delete phonebook internal error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update guest by idvisit
+app.put("/tamu/:idvisit", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idvisit } = req.params;
+    const dbRow = mapGuestPayloadToDb({ ...req.body, idvisit });
+    // Remove idvisit from update set
+    const { idvisit: _, ...updateRow } = dbRow;
+    const fields = Object.keys(updateRow);
+    const values = Object.values(updateRow);
+    const setClause = fields.map((f) => `\`${f}\` = ?`).join(",");
+    const sql = `UPDATE tabletamu SET ${setClause} WHERE idvisit = ?`;
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(sql, [...values, idvisit]);
+      if ((result?.affectedRows ?? 0) === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update tamu error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete guest by idvisit
+app.delete("/tamu/:idvisit", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const { idvisit } = req.params;
+      const [result] = await conn.query(
+        "DELETE FROM tabletamu WHERE idvisit = ?",
+        [idvisit]
+      );
+      const affected = result?.affectedRows ?? 0;
+      if (affected === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true, deleted: affected });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Delete tamu error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update status tamu
+app.patch("/tamu/:idvisit/status", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idvisit } = req.params;
+    const { statustamu } = req.body || {};
+    if (!statustamu) {
+      return res.status(400).json({ error: "Field statustamu wajib" });
+    }
+    const conn = await dbPool.getConnection();
+    try {
+      const [result] = await conn.query(
+        "UPDATE tabletamu SET statustamu = ? WHERE idvisit = ?",
+        [statustamu, idvisit]
+      );
+      if ((result?.affectedRows ?? 0) === 0) {
+        return res.status(404).json({ error: "Data tidak ditemukan" });
+      }
+      res.json({ success: true });
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update status tamu error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== DATA JABATAN (PEJABAT) ENDPOINTS =====
+
+// Helper function untuk generate ID jabatan
+function generateIdJabatan() {
+  const timestamp = Date.now().toString();
+  return `JAB${timestamp.slice(-8)}`;
+}
+
+// Helper function untuk mapping payload ke database
+function mapJabatanPayloadToDb(payload) {
+  return {
+    idjabatan: payload.idJabatan || generateIdJabatan(),
+    nama: payload.nama,
+    gedung: payload.gedung || null,
+    ruang: payload.ruang || null,
+    divisi: payload.divisi || null,
+    bidang: payload.bidang || null,
+    level: payload.level || null,
+    foto: payload.foto || null,
+  };
+}
+
+// POST - Create new jabatan entry
+app.post("/api/jabatan", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const payload = req.body;
+    const dbData = mapJabatanPayloadToDb(payload);
+
+    const conn = await dbPool.getConnection();
+    try {
+      const query = `
+        INSERT INTO data_jabatan (idjabatan, nama, gedung, ruang, divisi, bidang, level, foto)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      await conn.query(query, [
+        dbData.idjabatan,
+        dbData.nama,
+        dbData.gedung,
+        dbData.ruang,
+        dbData.divisi,
+        dbData.bidang,
+        dbData.level,
+        dbData.foto,
+      ]);
+
+      res.json({ success: true, message: "Data pejabat berhasil ditambahkan" });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error creating jabatan entry:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Gagal menambahkan data pejabat" });
+  }
+});
+
+// GET - List jabatan entries
+app.get("/api/jabatan", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+    try {
+      const query = `SELECT * FROM data_jabatan ORDER BY nama ASC`;
+      const [rows] = await conn.query(query);
+      res.json(rows);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error fetching jabatan:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Gagal mengambil data pejabat" });
+  }
+});
+
+// PUT - Update jabatan entry
+app.put("/api/jabatan/:idjabatan", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idjabatan } = req.params;
+    const payload = req.body;
+    const dbData = mapJabatanPayloadToDb({ ...payload, idJabatan: idjabatan });
+
+    const conn = await dbPool.getConnection();
+    try {
+      const query = `
+        UPDATE data_jabatan 
+        SET nama = ?, gedung = ?, ruang = ?, divisi = ?, bidang = ?, level = ?, foto = ?
+        WHERE idjabatan = ?
+      `;
+
+      const [result] = await conn.query(query, [
+        dbData.nama,
+        dbData.gedung,
+        dbData.ruang,
+        dbData.divisi,
+        dbData.bidang,
+        dbData.level,
+        dbData.foto,
+        idjabatan,
+      ]);
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Data tidak ditemukan" });
+      }
+
+      res.json({ success: true, message: "Data pejabat berhasil diperbarui" });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error updating jabatan entry:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Gagal memperbarui data pejabat" });
+  }
+});
+
+// DELETE - Delete jabatan entry
+app.delete("/api/jabatan/:idjabatan", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const { idjabatan } = req.params;
+
+    const conn = await dbPool.getConnection();
+    try {
+      const query = `DELETE FROM data_jabatan WHERE idjabatan = ?`;
+      const [result] = await conn.query(query, [idjabatan]);
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Data tidak ditemukan" });
+      }
+
+      res.json({ success: true, message: "Data pejabat berhasil dihapus" });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error deleting jabatan entry:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Gagal menghapus data pejabat" });
   }
 });
 

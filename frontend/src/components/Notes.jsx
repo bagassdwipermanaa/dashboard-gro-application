@@ -18,14 +18,28 @@ function Notes() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Load data from localStorage on component mount
+  // Load data from backend on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem("dataNotes");
-    if (savedData) {
-      const allData = JSON.parse(savedData);
-      setDataNotes(allData);
-      setFilteredData(allData);
-    }
+    const load = async () => {
+      try {
+        const res = await fetch("/api/notes");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        const mapped = rows.map((r) => ({
+          idnotes: r.idnotes,
+          dari: r.dari || "",
+          tujuan: r.tujuan || "",
+          tanggal: r.tanggal || new Date().toISOString().split("T")[0],
+          pesan: r.pesan || "",
+          status: r.status || "Open",
+        }));
+        setDataNotes(mapped);
+        setFilteredData(mapped);
+      } catch (e) {
+        console.error("Gagal memuat notes:", e);
+      }
+    };
+    load();
   }, []);
 
   // Filter data based on all filter criteria
@@ -70,14 +84,22 @@ function Notes() {
     setDeleteModal({ isOpen: true, note, index });
   };
 
-  const handleDeleteConfirm = () => {
-    const updatedData = dataNotes.filter((_, i) => i !== deleteModal.index);
-    setDataNotes(updatedData);
-    localStorage.setItem("dataNotes", JSON.stringify(updatedData));
-    setDeleteModal({ isOpen: false, note: null, index: null });
-
-    // Dispatch custom event to update navbar count
-    window.dispatchEvent(new CustomEvent("notesUpdated"));
+  const handleDeleteConfirm = async () => {
+    try {
+      const id = deleteModal.note?.idnotes || deleteModal.note?.id;
+      if (!id) throw new Error("ID notes tidak ditemukan");
+      const res = await fetch(`/api/notes/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updatedData = dataNotes.filter((_, i) => i !== deleteModal.index);
+      setDataNotes(updatedData);
+    } catch (e) {
+      alert(`Gagal menghapus notes: ${e.message}`);
+    } finally {
+      setDeleteModal({ isOpen: false, note: null, index: null });
+      window.dispatchEvent(new CustomEvent("notesUpdated"));
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -434,8 +456,7 @@ function Notes() {
           isOpen={deleteModal.isOpen}
           onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
-          title="Hapus Notes"
-          message={`Apakah Anda yakin ingin menghapus notes dari "${deleteModal.note?.dari}"?`}
+          tamuName={deleteModal.note?.dari || ""}
         />
       )}
     </div>

@@ -21,29 +21,20 @@ function TambahBukuTeleponTamu() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Generate unique ID
-    const newData = {
-      ...formData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-
-    // Get existing data
-    const existingData = JSON.parse(
-      localStorage.getItem("dataTeleponTamu") || "[]"
-    );
-
-    // Add new data
-    const updatedData = [...existingData, newData];
-
-    // Save to localStorage
-    localStorage.setItem("dataTeleponTamu", JSON.stringify(updatedData));
-
-    // Navigate back to list page
-    navigate("/list");
+    try {
+      const payload = { ...formData };
+      const res = await fetch("/api/phonebook/guests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      navigate("/list?tab=tamu");
+    } catch (err) {
+      alert(`Gagal menyimpan kontak tamu: ${err.message}`);
+    }
   };
 
   const handleCancel = () => {

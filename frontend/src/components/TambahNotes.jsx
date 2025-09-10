@@ -19,30 +19,20 @@ function TambahNotes() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Generate unique ID
-    const newNote = {
-      ...formData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-
-    // Get existing data
-    const existingData = JSON.parse(localStorage.getItem("dataNotes") || "[]");
-
-    // Add new note
-    const updatedData = [...existingData, newNote];
-
-    // Save to localStorage
-    localStorage.setItem("dataNotes", JSON.stringify(updatedData));
-
-    // Dispatch custom event to update navbar count
-    window.dispatchEvent(new CustomEvent("notesUpdated"));
-
-    // Navigate back to notes page
-    navigate("/notes");
+    try {
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      window.dispatchEvent(new CustomEvent("notesUpdated"));
+      navigate("/notes");
+    } catch (err) {
+      alert(`Gagal menyimpan notes: ${err.message}`);
+    }
   };
 
   const handleCancel = () => {

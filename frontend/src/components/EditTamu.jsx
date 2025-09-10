@@ -23,6 +23,7 @@ function EditTamu() {
     status: "",
     keterangan: "",
   });
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Load data from location state
   useEffect(() => {
@@ -39,23 +40,27 @@ function EditTamu() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Get existing data from localStorage
-    const existingData = JSON.parse(localStorage.getItem("dataTamu") || "[]");
-
-    // Find and update the specific record
-    const updatedData = existingData.map((tamu) =>
-      tamu.id === data.id ? { ...formData, id: data.id } : tamu
-    );
-
-    // Save to localStorage
-    localStorage.setItem("dataTamu", JSON.stringify(updatedData));
-
-    console.log("Updated data:", { ...formData, id: data.id });
-    alert("Data tamu berhasil diperbarui!");
-    navigate("/buku-tamu");
+    try {
+      const idvisit = data?.idvisit || formData?.idvisit;
+      if (!idvisit) throw new Error("ID kunjungan tidak ditemukan");
+      const payload = { ...formData, idvisit };
+      const res = await fetch(`/api/tamu/${encodeURIComponent(idvisit)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || `Gagal update (HTTP ${res.status})`);
+      }
+      alert("Data tamu berhasil diperbarui!");
+      navigate("/buku-tamu");
+    } catch (err) {
+      console.error("Update tamu gagal:", err);
+      alert(`Gagal memperbarui data: ${err.message}`);
+    }
   };
 
   if (!data) {
@@ -422,7 +427,10 @@ function EditTamu() {
                       <img
                         src={formData.fotoKartuIdentitas}
                         alt="Preview Foto Kartu Identitas"
-                        className="w-40 h-40 object-cover rounded-md border-2 border-gray-200"
+                        className="w-40 h-40 object-cover rounded-md border-2 border-gray-200 cursor-zoom-in"
+                        onClick={() =>
+                          setImagePreview(formData.fotoKartuIdentitas)
+                        }
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Foto kartu identitas berhasil diambil
@@ -633,7 +641,8 @@ function EditTamu() {
                       <img
                         src={formData.fotoTamu}
                         alt="Preview Foto Tamu"
-                        className="w-40 h-40 object-cover rounded-md border-2 border-gray-200"
+                        className="w-40 h-40 object-cover rounded-md border-2 border-gray-200 cursor-zoom-in"
+                        onClick={() => setImagePreview(formData.fotoTamu)}
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Foto berhasil diambil
@@ -669,6 +678,30 @@ function EditTamu() {
               </div>
             </div>
           </div>
+
+          {/* Image Lightbox */}
+          {imagePreview ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div
+                className="absolute inset-0 bg-black/80"
+                onClick={() => setImagePreview(null)}
+              />
+              <div className="relative max-w-[90vw] max-h-[90vh]">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-auto h-auto max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                />
+                <button
+                  onClick={() => setImagePreview(null)}
+                  className="absolute -top-3 -right-3 bg-white text-gray-700 rounded-full p-2 shadow hover:bg-gray-100"
+                  aria-label="Tutup"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {/* Section Waktu dan Status */}
           <div className="mt-8 pt-6 border-t border-gray-200">

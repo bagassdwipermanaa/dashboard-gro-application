@@ -19,14 +19,33 @@ function LogTelepon() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Load data from localStorage on component mount
+  // Load data from backend on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem("dataLogTelepon");
-    if (savedData) {
-      const allData = JSON.parse(savedData);
-      setDataLogTelepon(allData);
-      setFilteredData(allData);
-    }
+    const load = async () => {
+      try {
+        const res = await fetch("/api/logs/telepon");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        const mapped = rows.map((r) => ({
+          idbukutlp: r.idbukutlp,
+          namaPenelpon: r.nama_penelpon || "",
+          noPenelpon: r.no_penelpon || "",
+          namaDituju: r.nama_dituju || "",
+          noDituju: r.no_dituju || "",
+          tanggal: r.tanggal || new Date().toISOString().split("T")[0],
+          jam: r.jam || "00:00",
+          pesan: r.pesan || "",
+          keterangan: r.ket || "",
+          status: r.status || "Open",
+          telpKeluarMasuk: r.statusinout || "Masuk",
+        }));
+        setDataLogTelepon(mapped);
+        setFilteredData(mapped);
+      } catch (e) {
+        console.error("Gagal memuat data log telepon:", e);
+      }
+    };
+    load();
   }, []);
 
   // Filter data based on all filter criteria
@@ -79,13 +98,23 @@ function LogTelepon() {
     setDeleteModal({ isOpen: true, log, index });
   };
 
-  const handleDeleteConfirm = () => {
-    const updatedData = dataLogTelepon.filter(
-      (_, i) => i !== deleteModal.index
-    );
-    setDataLogTelepon(updatedData);
-    localStorage.setItem("dataLogTelepon", JSON.stringify(updatedData));
-    setDeleteModal({ isOpen: false, log: null, index: null });
+  const handleDeleteConfirm = async () => {
+    try {
+      const id = deleteModal.log?.idbukutlp;
+      if (!id) throw new Error("ID log tidak ditemukan");
+      const res = await fetch(`/api/logs/telepon/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updatedData = dataLogTelepon.filter(
+        (_, i) => i !== deleteModal.index
+      );
+      setDataLogTelepon(updatedData);
+    } catch (e) {
+      alert(`Gagal menghapus: ${e.message}`);
+    } finally {
+      setDeleteModal({ isOpen: false, log: null, index: null });
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -441,9 +470,12 @@ function LogTelepon() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() =>
-                            navigate("/log-telepon/edit/" + log.id, {
-                              state: { data: log },
-                            })
+                            navigate(
+                              "/log-telepon/edit/" + (log.idbukutlp || log.id),
+                              {
+                                state: { data: log },
+                              }
+                            )
                           }
                           className="p-1 text-blue-600 hover:bg-blue-100 rounded"
                           title="Edit"
@@ -497,8 +529,7 @@ function LogTelepon() {
           isOpen={deleteModal.isOpen}
           onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
-          title="Hapus Log Telepon"
-          message={`Apakah Anda yakin ingin menghapus log telepon dari "${deleteModal.log?.namaPenelpon}"?`}
+          tamuName={deleteModal.log?.namaPenelpon || ""}
         />
       )}
     </div>

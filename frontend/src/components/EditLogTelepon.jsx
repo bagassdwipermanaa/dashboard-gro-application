@@ -44,26 +44,22 @@ function EditLogTelepon() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Get existing data
-    const existingData = JSON.parse(
-      localStorage.getItem("dataLogTelepon") || "[]"
-    );
-
-    // Update the specific log
-    const updatedData = existingData.map((log) =>
-      log.id === logData.id
-        ? { ...log, ...formData, updatedAt: new Date().toISOString() }
-        : log
-    );
-
-    // Save to localStorage
-    localStorage.setItem("dataLogTelepon", JSON.stringify(updatedData));
-
-    // Navigate back to log telepon page
-    navigate("/log-telepon");
+    try {
+      const id = logData?.idbukutlp || logData?.id;
+      if (!id) throw new Error("ID log tidak ditemukan");
+      const payload = { ...formData };
+      const res = await fetch(`/api/logs/telepon/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      navigate("/log-telepon");
+    } catch (err) {
+      alert(`Gagal memperbarui log: ${err.message}`);
+    }
   };
 
   const handleCancel = () => {
