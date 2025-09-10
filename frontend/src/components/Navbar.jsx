@@ -31,6 +31,11 @@ function Navbar() {
     });
   }
 
+  // Simple toggle used by the ADMIN user dropdown (no position calc needed)
+  function toggle(menu) {
+    setOpenMenu((prev) => (prev === menu ? null : menu));
+  }
+
   function closeAll() {
     setOpenMenu(null);
   }
@@ -220,7 +225,7 @@ function Navbar() {
                 </button>
                 {openMenu === "report" ? (
                   <div
-                    className="fixed w-48 rounded-md border bg-white shadow-lg"
+                    className="fixed w-64 rounded-md border bg-white shadow-lg"
                     style={{
                       zIndex: 9999,
                       top: dropdownPos.top,
@@ -229,18 +234,11 @@ function Navbar() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Link
-                      to="/report/harian"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-md"
+                      to="/reports"
+                      className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-md"
                       onClick={closeAll}
                     >
-                      Laporan Harian
-                    </Link>
-                    <Link
-                      to="/report/bulanan"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-md"
-                      onClick={closeAll}
-                    >
-                      Laporan Bulanan
+                      Report Tamu Per Bulan
                     </Link>
                   </div>
                 ) : null}
@@ -266,7 +264,7 @@ function Navbar() {
                 </button>
                 {openMenu === "master" ? (
                   <div
-                    className="fixed w-48 rounded-md border bg-white shadow-lg"
+                    className="fixed w-56 rounded-md border bg-white shadow-lg"
                     style={{
                       zIndex: 9999,
                       top: dropdownPos.top,
@@ -275,18 +273,11 @@ function Navbar() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Link
-                      to="/master/users"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-md"
+                      to="/master/pejabat"
+                      className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-md"
                       onClick={closeAll}
                     >
-                      Pengguna
-                    </Link>
-                    <Link
-                      to="/master/roles"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-md"
-                      onClick={closeAll}
-                    >
-                      Role & Akses
+                      Daftar Pejabat
                     </Link>
                   </div>
                 ) : null}

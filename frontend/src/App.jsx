@@ -21,6 +21,7 @@ import TambahBukuTeleponInternal from "./components/TambahBukuTeleponInternal";
 import EditBukuTeleponTamu from "./components/EditBukuTeleponTamu";
 import EditBukuTeleponInternal from "./components/EditBukuTeleponInternal";
 import Welcome from "./components/Welcome";
+import DaftarPejabat from "./components/DaftarPejabat";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
               element={<EditBukuTeleponInternal />}
             />
             <Route path="reports" element={<Reports />} />
+            <Route path="master/pejabat" element={<DaftarPejabat />} />
             <Route path="settings" element={<Settings />} />
             <Route path="login" element={<Login />} />
           </Route>
