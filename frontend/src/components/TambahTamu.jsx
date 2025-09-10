@@ -48,29 +48,29 @@ function TambahTamu() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Generate unique ID for the guest
-    const idTamu = Date.now().toString();
-    const dataWithId = {
-      ...formData,
-      id: idTamu,
-      noIdTamu: formData.noIdTamu || idTamu,
-    };
+    try {
+      const payload = { ...formData };
+      // Backend akan membuat idvisit sendiri; kirim data sesuai mapping
+      const res = await fetch("/api/tamu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    // Get existing data from localStorage
-    const existingData = JSON.parse(localStorage.getItem("dataTamu") || "[]");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Gagal menyimpan (status ${res.status})`);
+      }
 
-    // Add new data
-    const updatedData = [...existingData, dataWithId];
-
-    // Save to localStorage
-    localStorage.setItem("dataTamu", JSON.stringify(updatedData));
-
-    console.log("Form data:", dataWithId);
-    alert("Data tamu berhasil disimpan!");
-    navigate("/buku-tamu");
+      alert("Data tamu berhasil disimpan!");
+      navigate("/buku-tamu");
+    } catch (error) {
+      console.error("Gagal simpan tamu:", error);
+      alert(`Gagal menyimpan data tamu: ${error.message}`);
+    }
   };
 
   return (

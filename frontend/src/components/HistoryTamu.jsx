@@ -22,16 +22,36 @@ function HistoryTamu() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Load data from localStorage on component mount
+  // Load data from backend on mount
   useEffect(() => {
-    const savedData = localStorage.getItem("dataTamu");
-    if (savedData) {
-      const allData = JSON.parse(savedData);
-      // Filter only closed status
-      const closedData = allData.filter((tamu) => tamu.statusTamu === "Closed");
-      setDataTamu(closedData);
-      setFilteredData(closedData);
-    }
+    const load = async () => {
+      try {
+        const res = await fetch("/api/tamu");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        const mapped = rows.map((r) => ({
+          nama: r.namatamu || "",
+          instansi: r.instansi || "",
+          keperluan: r.keperluan || "",
+          tujuan: r.tujuan || "",
+          divisi: r.divisi || "",
+          jenisKartu: r.jenisid || "",
+          kategoriTamu: r.cattamu || "",
+          waktuBerkunjung: r.jamdatang || "",
+          waktuKeluar: r.jamkeluar || "",
+          noIdTamu: r.noid || "",
+          statusTamu: r.statustamu || "",
+          status: r.status || "",
+          keterangan: r.ket || r.cattamu || "",
+          idvisit: r.idvisit,
+        }));
+        setDataTamu(mapped);
+        setFilteredData(mapped);
+      } catch (e) {
+        console.error("Gagal memuat data history tamu:", e);
+      }
+    };
+    load();
   }, []);
 
   // Filter data based on all filter criteria

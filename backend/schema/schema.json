@@ -1,0 +1,958 @@
+{
+  "aktivitas_pengguna": {
+    "columns": [
+      {
+        "COLUMN_NAME": "ID_AKTIVITAS",
+        "COLUMN_TYPE": "char(14)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "MODEL",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "USERNAME",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "KETERANGAN",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "aktivitas_pengguna",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "ID_AKTIVITAS",
+        "Collation": "A",
+        "Cardinality": 37300,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "bukutelpon": {
+    "columns": [
+      {
+        "COLUMN_NAME": "idbukutlp",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "nama_penelpon",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "no_penelpon",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "nama_dituju",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "no_dituju",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tanggal",
+        "COLUMN_TYPE": "date",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "jam",
+        "COLUMN_TYPE": "time",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "pesan",
+        "COLUMN_TYPE": "varchar(500)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ket",
+        "COLUMN_TYPE": "varchar(500)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "status",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "statusinout",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "bukutelpon",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "idbukutlp",
+        "Collation": "A",
+        "Cardinality": 0,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "bukutlpinternal": {
+    "columns": [
+      {
+        "COLUMN_NAME": "idtlp",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "nama",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "jabatan",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "divisi",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tlp1",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tlp2",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "extension",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "email",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "bukutlpinternal",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "idtlp",
+        "Collation": "A",
+        "Cardinality": 8,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "bukutlptamu": {
+    "columns": [
+      {
+        "COLUMN_NAME": "nama",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "instansi",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tlp1",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tlp2",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "alamat",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "fax",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "email",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "bukutlptamu",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "tlp1",
+        "Collation": "A",
+        "Cardinality": 3,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "data_jabatan": {
+    "columns": [
+      {
+        "COLUMN_NAME": "idjabatan",
+        "COLUMN_TYPE": "varchar(25)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "nama",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "gedung",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ruang",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "divisi",
+        "COLUMN_TYPE": "varchar(500)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "bidang",
+        "COLUMN_TYPE": "varchar(500)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "level",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "foto",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "data_jabatan",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "idjabatan",
+        "Collation": "A",
+        "Cardinality": 89,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "data_pengguna": {
+    "columns": [
+      {
+        "COLUMN_NAME": "ID_PENGGUNA",
+        "COLUMN_TYPE": "char(8)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "USERNAME",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "PASSWORD",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "NAMA_PENGGUNA",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "JABATAN_PENGGUNA",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "'-'",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ALAMAT_PENGGUNA",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "NO_TELP_PENGGUNA",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "'-'",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "EMAIL_PENGGUNA",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "'-'",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "JENIS_USER",
+        "COLUMN_TYPE": "char(1)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "STATUS_USER",
+        "COLUMN_TYPE": "char(1)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "data_pengguna",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "ID_PENGGUNA",
+        "Collation": "A",
+        "Cardinality": 11,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "data_pengguna_detail": {
+    "columns": [
+      {
+        "COLUMN_NAME": "ID_PENGGUNA_DETAIL",
+        "COLUMN_TYPE": "char(8)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ID_PENGGUNA",
+        "COLUMN_TYPE": "char(8)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "MUL",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ID_REGION",
+        "COLUMN_TYPE": "char(2)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ID_UNIT",
+        "COLUMN_TYPE": "char(4)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "JENIS_PEKERJAAN",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "data_pengguna_detail",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "ID_PENGGUNA_DETAIL",
+        "Collation": "A",
+        "Cardinality": 0,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      },
+      {
+        "Table": "data_pengguna_detail",
+        "Non_unique": 1,
+        "Key_name": "ID_PENGGUNA",
+        "Seq_in_index": 1,
+        "Column_name": "ID_PENGGUNA",
+        "Collation": "A",
+        "Cardinality": 0,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "gro": {
+    "columns": [
+      {
+        "COLUMN_NAME": "nip",
+        "COLUMN_TYPE": "varchar(25)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "nama",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "posgro",
+        "COLUMN_TYPE": "varchar(25)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "shift",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "username",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "pass",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "jenis_user",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "status_user",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "fotogro",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "email",
+        "COLUMN_TYPE": "varchar(75)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "telp",
+        "COLUMN_TYPE": "varchar(25)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "gro",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "nip",
+        "Collation": "A",
+        "Cardinality": 7,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "notes": {
+    "columns": [
+      {
+        "COLUMN_NAME": "idnotes",
+        "COLUMN_TYPE": "varchar(20)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "dari",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tujuan",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tanggal",
+        "COLUMN_TYPE": "date",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "pesan",
+        "COLUMN_TYPE": "varchar(500)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "status",
+        "COLUMN_TYPE": "varchar(10)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "notes",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "idnotes",
+        "Collation": "A",
+        "Cardinality": 0,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  },
+  "tabletamu": {
+    "columns": [
+      {
+        "COLUMN_NAME": "idvisit",
+        "COLUMN_TYPE": "varchar(15)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": null,
+        "COLUMN_KEY": "PRI",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "namatamu",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "instansi",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "keperluan",
+        "COLUMN_TYPE": "varchar(200)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "tujuan",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "divisi",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "jenisid",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "noid",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "cattamu",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "jamdatang",
+        "COLUMN_TYPE": "datetime",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "jamkeluar",
+        "COLUMN_TYPE": "datetime",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "foto",
+        "COLUMN_TYPE": "longtext",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "noidcard",
+        "COLUMN_TYPE": "varchar(200)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "status",
+        "COLUMN_TYPE": "varchar(50)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ket",
+        "COLUMN_TYPE": "text",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "groinput",
+        "COLUMN_TYPE": "varchar(100)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "posgro",
+        "COLUMN_TYPE": "varchar(15)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "fotoid",
+        "COLUMN_TYPE": "longtext",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "statustamu",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      },
+      {
+        "COLUMN_NAME": "ruangtujuan",
+        "COLUMN_TYPE": "varchar(255)",
+        "IS_NULLABLE": "YES",
+        "COLUMN_DEFAULT": "NULL",
+        "COLUMN_KEY": "",
+        "EXTRA": ""
+      }
+    ],
+    "indexes": [
+      {
+        "Table": "tabletamu",
+        "Non_unique": 0,
+        "Key_name": "PRIMARY",
+        "Seq_in_index": 1,
+        "Column_name": "idvisit",
+        "Collation": "A",
+        "Cardinality": 35227,
+        "Sub_part": null,
+        "Packed": null,
+        "Null": "",
+        "Index_type": "BTREE",
+        "Comment": "",
+        "Index_comment": "",
+        "Ignored": "NO"
+      }
+    ]
+  }
+}

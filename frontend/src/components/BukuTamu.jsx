@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
+import Pagination from "./Pagination";
 
 function BukuTamu() {
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+    const date = new Date(value.replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return value;
+    return `${String(date.getDate()).padStart(2, "0")}/${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}/${date.getFullYear()} ${String(
+      date.getHours()
+    ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  };
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [dataTamu, setDataTamu] = useState([]);
@@ -22,15 +33,44 @@ function BukuTamu() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [divisiFilter, setDivisiFilter] = useState("");
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  // Load data from localStorage on component mount
+  // Load data from backend on mount
   useEffect(() => {
-    const savedData = localStorage.getItem("dataTamu");
-    if (savedData) {
-      const allData = JSON.parse(savedData);
-      setDataTamu(allData);
-      setFilteredData(allData);
-    }
+    const load = async () => {
+      try {
+        const res = await fetch("/api/tamu");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        // Map DB rows (tabletamu) to FE fields
+        const mapped = rows.map((r) => ({
+          nama: r.namatamu || "",
+          instansi: r.instansi || "",
+          keperluan: r.keperluan || "",
+          tujuan: r.tujuan || "",
+          divisi: r.divisi || "",
+          jenisKartu: r.jenisid || "",
+          // kategoriTamu berasal dari cattamu (CLASS1/CLASS2/...) di DB
+          kategoriTamu: r.cattamu || "",
+          waktuBerkunjung: r.jamdatang || "",
+          waktuKeluar: r.jamkeluar || "",
+          noIdTamu: r.noid || "",
+          fotoTamu: r.foto || "",
+          fotoKartuIdentitas: r.fotoid || "",
+          statusTamu: r.statustamu || "",
+          status: r.status || "",
+          keterangan: r.ket || r.cattamu || "",
+          idvisit: r.idvisit,
+        }));
+        setDataTamu(mapped);
+        setFilteredData(mapped);
+      } catch (e) {
+        console.error("Gagal memuat data tamu:", e);
+      }
+    };
+    load();
   }, []);
 
   // Filter data based on all filter criteria
@@ -108,6 +148,25 @@ function BukuTamu() {
     dateFrom,
     dateTo,
   ]);
+  // Reset halaman saat filter/ukuran halaman berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchTerm,
+    statusFilter,
+    kategoriFilter,
+    keperluanFilter,
+    divisiFilter,
+    dateFrom,
+    dateTo,
+    pageSize,
+  ]);
+
+  const totalItems = filteredData.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const firstItemIndex = (currentPage - 1) * pageSize;
+  const lastItemIndex = Math.min(firstItemIndex + pageSize, totalItems);
+  const pageItems = filteredData.slice(firstItemIndex, lastItemIndex);
 
   // Listen for new data from TambahTamu
   useEffect(() => {
@@ -126,7 +185,6 @@ function BukuTamu() {
     const updatedData = [...dataTamu];
     updatedData[index].statusTamu = newStatus;
     setDataTamu(updatedData);
-    localStorage.setItem("dataTamu", JSON.stringify(updatedData));
   };
 
   const handleDeleteClick = (tamu, index) => {
@@ -136,7 +194,6 @@ function BukuTamu() {
   const handleDeleteConfirm = () => {
     const updatedData = dataTamu.filter((_, i) => i !== deleteModal.index);
     setDataTamu(updatedData);
-    localStorage.setItem("dataTamu", JSON.stringify(updatedData));
     setDeleteModal({ isOpen: false, tamu: null, index: null });
   };
 
@@ -442,12 +499,25 @@ function BukuTamu() {
       <div className="rounded-xl border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b flex items-center justify-between">
           <div className="text-sm text-gray-600">Data Tamu</div>
-          <div className="text-xs text-gray-400">
-            {filteredData.length} hasil
+          <div className="flex items-center gap-3 text-xs text-gray-600">
+            <span>
+              Menampilkan {totalItems === 0 ? 0 : firstItemIndex + 1}–
+              {lastItemIndex} dari {totalItems} hasil
+            </span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="border rounded px-2 py-1 text-xs"
+            >
+              <option value={10}>10 / halaman</option>
+              <option value={25}>25 / halaman</option>
+              <option value={50}>50 / halaman</option>
+              <option value={100}>100 / halaman</option>
+            </select>
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="min-w-full text-sm table-auto">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 {[
@@ -469,7 +539,7 @@ function BukuTamu() {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-3 py-2 font-medium text-left whitespace-nowrap"
+                    className="px-3 py-2 font-medium text-left whitespace-nowrap sticky top-0 bg-gray-50 z-10"
                   >
                     {h}
                   </th>
@@ -489,9 +559,9 @@ function BukuTamu() {
                   </td>
                 </tr>
               ) : (
-                filteredData.map((tamu, index) => (
+                pageItems.map((tamu, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{index + 1}</td>
+                    <td className="px-3 py-2">{firstItemIndex + index + 1}</td>
                     <td
                       className="px-3 py-2 font-medium cursor-pointer hover:text-blue-600"
                       onClick={() => setSelectedTamu(tamu)}
@@ -504,8 +574,12 @@ function BukuTamu() {
                     <td className="px-3 py-2">{tamu.divisi}</td>
                     <td className="px-3 py-2">{tamu.jenisKartu || "-"}</td>
                     <td className="px-3 py-2">{tamu.kategoriTamu || "-"}</td>
-                    <td className="px-3 py-2">{tamu.waktuBerkunjung || "-"}</td>
-                    <td className="px-3 py-2">{tamu.waktuKeluar || "-"}</td>
+                    <td className="px-3 py-2">
+                      {formatDateTime(tamu.waktuBerkunjung)}
+                    </td>
+                    <td className="px-3 py-2">
+                      {formatDateTime(tamu.waktuKeluar)}
+                    </td>
                     <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
                     <td className="px-3 py-2">
                       <select
@@ -626,218 +700,236 @@ function BukuTamu() {
             </tbody>
           </table>
         </div>
+        <div className="px-4 py-3 border-t flex items-center justify-between text-sm">
+          <div className="text-gray-600">
+            Halaman {currentPage} dari {totalPages}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onChange={(p) => setCurrentPage(p)}
+          />
+        </div>
       </div>
 
-      {/* Detail View */}
-      {selectedTamu && (
-        <div className="rounded-xl border bg-white p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Detail Data Tamu</h3>
-            <button
-              onClick={() => setSelectedTamu(null)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+      {/* Detail View Modal */}
+      {selectedTamu ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setSelectedTamu(null)}
+          />
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-auto rounded-xl border bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-white">
+              <h3 className="text-lg font-semibold">Detail Data Tamu</h3>
+              <button
+                onClick={() => setSelectedTamu(null)}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Foto
-              </label>
-              <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
-                {selectedTamu.fotoTamu ? (
-                  <img
-                    src={selectedTamu.fotoTamu}
-                    alt="Foto Tamu"
-                    className="w-full h-full object-cover rounded-lg"
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
                   />
-                ) : (
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Foto
+                </label>
+                <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                  {selectedTamu.fotoTamu ? (
+                    <img
+                      src={selectedTamu.fotoTamu}
+                      alt="Foto Tamu"
+                      className="w-full h-full object-cover rounded-lg"
                     />
-                  </svg>
-                )}
+                  ) : (
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.nama}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.nama}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Instansi
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.instansi}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Instansi
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.instansi}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Keperluan
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.keperluan}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Keperluan
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.keperluan}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tujuan
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.tujuan}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tujuan
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.tujuan}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Divisi
-              </label>
-              <p className="text-sm text-gray-900">{selectedTamu.divisi}</p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Divisi
+                </label>
+                <p className="text-sm text-gray-900">{selectedTamu.divisi}</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Jenis Kartu Identitas
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.jenisKartu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Jenis Kartu Identitas
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.jenisKartu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                No. Kartu Identitas
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.noIdTamu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  No. Kartu Identitas
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.noIdTamu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Foto Kartu Identitas
-              </label>
-              <div className="w-24 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                {selectedTamu.fotoKartuIdentitas ? (
-                  <img
-                    src={selectedTamu.fotoKartuIdentitas}
-                    alt="Foto Kartu Identitas"
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <svg
-                    className="w-6 h-6 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Foto Kartu Identitas
+                </label>
+                <div className="w-24 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                  {selectedTamu.fotoKartuIdentitas ? (
+                    <img
+                      src={selectedTamu.fotoKartuIdentitas}
+                      alt="Foto Kartu Identitas"
+                      className="w-full h-full object-cover rounded-lg"
                     />
-                  </svg>
-                )}
+                  ) : (
+                    <svg
+                      className="w-6 h-6 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kategori Tamu
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.kategoriTamu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kategori Tamu
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.kategoriTamu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Waktu Berkunjung
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.waktuBerkunjung || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Waktu Berkunjung
+                </label>
+                <p className="text-sm text-gray-900">
+                  {formatDateTime(selectedTamu.waktuBerkunjung)}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Waktu Keluar
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.waktuKeluar || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Waktu Keluar
+                </label>
+                <p className="text-sm text-gray-900">
+                  {formatDateTime(selectedTamu.waktuKeluar)}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                No. ID Tamu
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.noIdTamu || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  No. ID Tamu
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.noIdTamu || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <span
-                className={`inline-flex px-2 py-1 rounded-full text-xs ${
-                  selectedTamu.status === "Clear"
-                    ? "bg-green-100 text-green-800"
-                    : selectedTamu.status === "Warning"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : selectedTamu.status === "Attention"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {selectedTamu.status || "-"}
-              </span>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <span
+                  className={`inline-flex px-2 py-1 rounded-full text-xs ${
+                    selectedTamu.status === "Clear"
+                      ? "bg-green-100 text-green-800"
+                      : selectedTamu.status === "Warning"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : selectedTamu.status === "Attention"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {selectedTamu.status || "-"}
+                </span>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Keterangan
-              </label>
-              <p className="text-sm text-gray-900">
-                {selectedTamu.keterangan || "-"}
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Keterangan
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedTamu.keterangan || "-"}
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Pos GRO
-              </label>
-              <p className="text-sm text-gray-900">ADMIN POS 1A</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pos GRO
+                </label>
+                <p className="text-sm text-gray-900">ADMIN POS 1A</p>
+              </div>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {isOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
