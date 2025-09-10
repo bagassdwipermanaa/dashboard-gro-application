@@ -164,7 +164,13 @@ function BukuTamu() {
           </p>
         </div>
         <button
-          onClick={() => navigate("/buku-tamu/tambah")}
+          onClick={() =>
+            navigate("/buku-tamu/tambah", {
+              state: {
+                waktuBerkunjung: new Date().toISOString(),
+              },
+            })
+          }
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
           <svg

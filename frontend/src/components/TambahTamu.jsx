@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function TambahTamu() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const waktuBerkunjungFromState = location.state?.waktuBerkunjung;
+
   const [formData, setFormData] = useState({
     nama: "",
     instansi: "",
@@ -11,7 +14,7 @@ function TambahTamu() {
     divisi: "",
     jenisKartu: "",
     kategoriTamu: "",
-    waktuBerkunjung: "",
+    waktuBerkunjung: waktuBerkunjungFromState || "",
     waktuKeluar: "",
     noIdTamu: "",
     fotoTamu: "",
@@ -20,6 +23,25 @@ function TambahTamu() {
     status: "",
     keterangan: "",
   });
+
+  // Set waktu berkunjung saat component mount
+  useEffect(() => {
+    const waktuBerkunjung =
+      waktuBerkunjungFromState || new Date().toISOString();
+    // Convert to local datetime format (YYYY-MM-DDTHH:MM)
+    const date = new Date(waktuBerkunjung);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const formattedWaktu = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+    setFormData((prev) => ({
+      ...prev,
+      waktuBerkunjung: formattedWaktu,
+    }));
+  }, [waktuBerkunjungFromState]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -658,9 +680,9 @@ function TambahTamu() {
                   type="datetime-local"
                   name="waktuBerkunjung"
                   value={formData.waktuBerkunjung}
-                  onChange={handleChange}
+                  readOnly
                   required
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
                 />
               </div>
 

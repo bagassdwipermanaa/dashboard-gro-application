@@ -1,19 +1,67 @@
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(null); // 'list' | 'report' | 'master' | 'user' | null
+  const [notesCount, setNotesCount] = useState(0);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  function toggle(menu) {
-    setOpenMenu((prev) => (prev === menu ? null : menu));
+  function handleToggle(menu, event) {
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const dropdownWidthPx = 192; // Tailwind w-48
+    const computedLeft = Math.max(
+      8,
+      Math.min(
+        window.innerWidth - dropdownWidthPx - 8,
+        buttonRect.right - dropdownWidthPx
+      )
+    );
+    const computedTop = buttonRect.bottom + window.scrollY + 8;
+
+    setDropdownPos({ top: computedTop, left: computedLeft });
+
+    console.log("🔥 TOGGLE:", menu, "Current:", openMenu);
+    setOpenMenu((prev) => {
+      const newValue = prev === menu ? null : menu;
+      console.log("🔥 NEW VALUE:", newValue);
+      return newValue;
+    });
   }
 
   function closeAll() {
     setOpenMenu(null);
   }
+
+  // Load notes count from localStorage
+  useEffect(() => {
+    const loadNotesCount = () => {
+      const savedData = localStorage.getItem("dataNotes");
+      if (savedData) {
+        const notes = JSON.parse(savedData);
+        setNotesCount(notes.length);
+      }
+    };
+
+    loadNotesCount();
+
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      loadNotesCount();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also listen for custom events when data changes in same tab
+    window.addEventListener("notesUpdated", loadNotesCount);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("notesUpdated", loadNotesCount);
+    };
+  }, []);
 
   return (
     <header
@@ -103,12 +151,12 @@ function Navbar() {
                   }`
                 }
               >
-                Notes (0)
+                Notes ({notesCount})
               </NavLink>
 
-              <div className="relative">
+              <div className="relative group">
                 <button
-                  onClick={() => toggle("list")}
+                  onClick={(e) => handleToggle("list", e)}
                   className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
                     openMenu === "list"
                       ? "bg-gray-900 text-white shadow-sm"
@@ -125,20 +173,28 @@ function Navbar() {
                   </svg>
                 </button>
                 {openMenu === "list" ? (
-                  <div className="absolute left-0 mt-2 w-40 rounded-md border bg-white shadow-md">
+                  <div
+                    className="fixed w-48 rounded-md border bg-white shadow-lg"
+                    style={{
+                      zIndex: 9999,
+                      top: dropdownPos.top,
+                      left: dropdownPos.left,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Link
-                      to="/list/kategori"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50"
+                      to="/list?tab=tamu"
+                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-md"
                       onClick={closeAll}
                     >
-                      Kategori
+                      Buku Telepon Tamu
                     </Link>
                     <Link
-                      to="/list/status"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50"
+                      to="/list?tab=internal"
+                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-md"
                       onClick={closeAll}
                     >
-                      Status
+                      Buku Telepon Internal
                     </Link>
                   </div>
                 ) : null}
@@ -146,7 +202,7 @@ function Navbar() {
 
               <div className="relative">
                 <button
-                  onClick={() => toggle("report")}
+                  onClick={(e) => handleToggle("report", e)}
                   className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
                     openMenu === "report"
                       ? "bg-gray-900 text-white shadow-sm"
@@ -163,17 +219,25 @@ function Navbar() {
                   </svg>
                 </button>
                 {openMenu === "report" ? (
-                  <div className="absolute left-0 mt-2 w-48 rounded-md border bg-white shadow-md">
+                  <div
+                    className="fixed w-48 rounded-md border bg-white shadow-lg"
+                    style={{
+                      zIndex: 9999,
+                      top: dropdownPos.top,
+                      left: dropdownPos.left,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Link
                       to="/report/harian"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50"
+                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-md"
                       onClick={closeAll}
                     >
                       Laporan Harian
                     </Link>
                     <Link
                       to="/report/bulanan"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50"
+                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-md"
                       onClick={closeAll}
                     >
                       Laporan Bulanan
@@ -184,7 +248,7 @@ function Navbar() {
 
               <div className="relative">
                 <button
-                  onClick={() => toggle("master")}
+                  onClick={(e) => handleToggle("master", e)}
                   className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
                     openMenu === "master"
                       ? "bg-gray-900 text-white shadow-sm"
@@ -201,17 +265,25 @@ function Navbar() {
                   </svg>
                 </button>
                 {openMenu === "master" ? (
-                  <div className="absolute left-0 mt-2 w-48 rounded-md border bg-white shadow-md">
+                  <div
+                    className="fixed w-48 rounded-md border bg-white shadow-lg"
+                    style={{
+                      zIndex: 9999,
+                      top: dropdownPos.top,
+                      left: dropdownPos.left,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Link
                       to="/master/users"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50"
+                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-md"
                       onClick={closeAll}
                     >
                       Pengguna
                     </Link>
                     <Link
                       to="/master/roles"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50"
+                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-md"
                       onClick={closeAll}
                     >
                       Role & Akses
