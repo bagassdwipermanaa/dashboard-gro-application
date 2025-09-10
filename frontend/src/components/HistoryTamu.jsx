@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 
-function BukuTamu() {
+function HistoryTamu() {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
   const [dataTamu, setDataTamu] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
   const [selectedTamu, setSelectedTamu] = useState(null);
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -14,22 +15,22 @@ function BukuTamu() {
     index: null,
   });
 
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  // Additional filter states
   const [kategoriFilter, setKategoriFilter] = useState("");
   const [keperluanFilter, setKeperluanFilter] = useState("");
+  const [divisiFilter, setDivisiFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [divisiFilter, setDivisiFilter] = useState("");
 
   // Load data from localStorage on component mount
   useEffect(() => {
     const savedData = localStorage.getItem("dataTamu");
     if (savedData) {
       const allData = JSON.parse(savedData);
-      setDataTamu(allData);
-      setFilteredData(allData);
+      // Filter only closed status
+      const closedData = allData.filter((tamu) => tamu.statusTamu === "Closed");
+      setDataTamu(closedData);
+      setFilteredData(closedData);
     }
   }, []);
 
@@ -52,11 +53,6 @@ function BukuTamu() {
           tamu.noIdTamu?.toLowerCase().includes(searchLower) ||
           tamu.keterangan?.toLowerCase().includes(searchLower)
       );
-    }
-
-    // Status filter
-    if (statusFilter) {
-      filtered = filtered.filter((tamu) => tamu.statusTamu === statusFilter);
     }
 
     // Kategori filter
@@ -97,36 +93,31 @@ function BukuTamu() {
       });
     }
 
+    // Legacy date filter (single date)
+    if (dateFilter) {
+      filtered = filtered.filter((tamu) => {
+        const visitDate = new Date(tamu.waktuBerkunjung)
+          .toISOString()
+          .split("T")[0];
+        return visitDate === dateFilter;
+      });
+    }
+
     setFilteredData(filtered);
   }, [
     dataTamu,
     searchTerm,
-    statusFilter,
     kategoriFilter,
     keperluanFilter,
     divisiFilter,
     dateFrom,
     dateTo,
+    dateFilter,
   ]);
 
-  // Listen for new data from TambahTamu
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedData = localStorage.getItem("dataTamu");
-      if (savedData) {
-        setDataTamu(JSON.parse(savedData));
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  const updateStatusTamu = (index, newStatus) => {
-    const updatedData = [...dataTamu];
-    updatedData[index].statusTamu = newStatus;
-    setDataTamu(updatedData);
-    localStorage.setItem("dataTamu", JSON.stringify(updatedData));
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    alert("Export functionality akan diimplementasikan");
   };
 
   const handleDeleteClick = (tamu, index) => {
@@ -136,6 +127,7 @@ function BukuTamu() {
   const handleDeleteConfirm = () => {
     const updatedData = dataTamu.filter((_, i) => i !== deleteModal.index);
     setDataTamu(updatedData);
+    setFilteredData(updatedData);
     localStorage.setItem("dataTamu", JSON.stringify(updatedData));
     setDeleteModal({ isOpen: false, tamu: null, index: null });
   };
@@ -146,49 +138,30 @@ function BukuTamu() {
 
   const clearAllFilters = () => {
     setSearchTerm("");
-    setStatusFilter("");
     setKategoriFilter("");
     setKeperluanFilter("");
+    setDivisiFilter("");
     setDateFrom("");
     setDateTo("");
-    setDivisiFilter("");
+    setDateFilter("");
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Data Tamu</h1>
+          <h1 className="text-2xl font-bold">History Data Tamu</h1>
           <p className="text-gray-600">
-            Kelola buku tamu dan riwayat kunjungan
+            Riwayat kunjungan tamu yang sudah selesai
           </p>
         </div>
-        <button
-          onClick={() => navigate("/buku-tamu/tambah")}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Tambah
-        </button>
       </header>
 
       {/* Advanced Filter Section */}
       <div className="bg-white rounded-xl border p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">
-            🔍 Filter & Pencarian
+            🔍 Filter & Pencarian History
           </h3>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600">
@@ -239,23 +212,6 @@ function BukuTamu() {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📊 Status Tamu
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="Open">Open</option>
-              <option value="Entry">Entry</option>
-              <option value="Closed">Closed</option>
-            </select>
           </div>
 
           {/* Kategori Filter */}
@@ -336,16 +292,55 @@ function BukuTamu() {
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
+          {/* Legacy Single Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📅 Tanggal Spesifik
+            </label>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Export Button */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📊 Export
+            </label>
+            <button
+              onClick={handleExport}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Export Data
+            </button>
+          </div>
         </div>
 
         {/* Active Filters Display */}
         {(searchTerm ||
-          statusFilter ||
           kategoriFilter ||
           keperluanFilter ||
           divisiFilter ||
           dateFrom ||
-          dateTo) && (
+          dateTo ||
+          dateFilter) && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-medium text-gray-700">
@@ -357,17 +352,6 @@ function BukuTamu() {
                   <button
                     onClick={() => setSearchTerm("")}
                     className="ml-1 hover:text-blue-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {statusFilter && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Status: {statusFilter}
-                  <button
-                    onClick={() => setStatusFilter("")}
-                    className="ml-1 hover:text-green-600"
                   >
                     ✕
                   </button>
@@ -428,24 +412,30 @@ function BukuTamu() {
                   </button>
                 </span>
               )}
+              {dateFilter && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                  Tanggal: {dateFilter}
+                  <button
+                    onClick={() => setDateFilter("")}
+                    className="ml-1 hover:text-indigo-600"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
             </div>
           </div>
         )}
       </div>
 
+      {/* Table Section */}
       <div className="rounded-xl border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b flex items-center justify-between">
-          <div className="text-sm text-gray-600">Data Tamu</div>
-          <div className="text-xs text-gray-400">
-            {filteredData.length} hasil
-          </div>
-        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 {[
-                  "#",
+                  "",
                   "Nama",
                   "Instansi",
                   "Keperluan",
@@ -456,9 +446,8 @@ function BukuTamu() {
                   "Waktu Berkunjung",
                   "Waktu Keluar",
                   "No. ID Tamu",
-                  "Status Tamu",
-                  "Status",
                   "Keterangan",
+                  "Status Tamu",
                   "Actions",
                 ].map((h) => (
                   <th
@@ -474,18 +463,18 @@ function BukuTamu() {
               {filteredData.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={15}
+                    colSpan={14}
                     className="px-3 py-10 text-center text-gray-500"
                   >
-                    {dataTamu.length === 0
-                      ? "Belum ada data tamu"
-                      : "Tidak ada data yang sesuai dengan filter"}
+                    No results found.
                   </td>
                 </tr>
               ) : (
                 filteredData.map((tamu, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{index + 1}</td>
+                    <td className="px-3 py-2">
+                      <input type="checkbox" className="rounded" />
+                    </td>
                     <td
                       className="px-3 py-2 font-medium cursor-pointer hover:text-blue-600"
                       onClick={() => setSelectedTamu(tamu)}
@@ -501,44 +490,12 @@ function BukuTamu() {
                     <td className="px-3 py-2">{tamu.waktuBerkunjung || "-"}</td>
                     <td className="px-3 py-2">{tamu.waktuKeluar || "-"}</td>
                     <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
+                    <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
                     <td className="px-3 py-2">
-                      <select
-                        value={tamu.statusTamu || ""}
-                        onChange={(e) =>
-                          updateStatusTamu(index, e.target.value)
-                        }
-                        className={`px-2 py-1 rounded-full text-xs border-0 ${
-                          tamu.statusTamu === "Open"
-                            ? "bg-green-100 text-green-800"
-                            : tamu.statusTamu === "Entry"
-                            ? "bg-blue-100 text-blue-800"
-                            : tamu.statusTamu === "Closed"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        <option value="">Pilih Status</option>
-                        <option value="Open">Open</option>
-                        <option value="Entry">Entry</option>
-                        <option value="Closed">Closed</option>
-                      </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          tamu.status === "Clear"
-                            ? "bg-green-100 text-green-800"
-                            : tamu.status === "Warning"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : tamu.status === "Attention"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {tamu.status || "-"}
+                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                        {tamu.statusTamu || "-"}
                       </span>
                     </td>
-                    <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button
@@ -833,129 +790,6 @@ function BukuTamu() {
         </div>
       )}
 
-      {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="relative w-full max-w-2xl rounded-xl border bg-white shadow-lg">
-            <div className="px-5 py-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold">Tambah Data Tamu</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setIsOpen(false);
-              }}
-              className="px-5 py-5 grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Nama</label>
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  placeholder="Nama lengkap"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Instansi
-                </label>
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  placeholder="Nama instansi"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Keperluan
-                </label>
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  placeholder="Keperluan"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Tujuan
-                </label>
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  placeholder="Tujuan"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Divisi
-                </label>
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  placeholder="Divisi"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Kategori Tamu
-                </label>
-                <select className="w-full rounded-md border px-3 py-2">
-                  <option>Tamu Umum</option>
-                  <option>Vendor</option>
-                  <option>Internal</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Waktu Berkunjung
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full rounded-md border px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Waktu Keluar
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full rounded-md border px-3 py-2"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs text-gray-600 mb-1">
-                  Keterangan
-                </label>
-                <textarea
-                  className="w-full rounded-md border px-3 py-2"
-                  rows={3}
-                />
-              </div>
-              <div className="md:col-span-2 flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-3 py-2 text-sm rounded-md border hover:bg-gray-50"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-3 py-2 text-sm rounded-md bg-gray-900 text-white hover:bg-gray-800"
-                >
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
       {/* Delete Confirmation Modal */}
       <DeleteModal
         isOpen={deleteModal.isOpen}
@@ -967,4 +801,4 @@ function BukuTamu() {
   );
 }
 
-export default BukuTamu;
+export default HistoryTamu;

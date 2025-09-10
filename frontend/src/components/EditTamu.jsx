@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-function TambahTamu() {
+function EditTamu() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { data } = location.state || {};
+
   const [formData, setFormData] = useState({
     nama: "",
     instansi: "",
@@ -21,6 +24,16 @@ function TambahTamu() {
     keterangan: "",
   });
 
+  // Load data from location state
+  useEffect(() => {
+    if (data) {
+      setFormData(data);
+    } else {
+      // If no data, redirect back
+      navigate("/buku-tamu");
+    }
+  }, [data, navigate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -29,36 +42,49 @@ function TambahTamu() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Generate unique ID for the guest
-    const idTamu = Date.now().toString();
-    const dataWithId = {
-      ...formData,
-      id: idTamu,
-      noIdTamu: formData.noIdTamu || idTamu,
-    };
-
     // Get existing data from localStorage
     const existingData = JSON.parse(localStorage.getItem("dataTamu") || "[]");
 
-    // Add new data
-    const updatedData = [...existingData, dataWithId];
+    // Find and update the specific record
+    const updatedData = existingData.map((tamu) =>
+      tamu.id === data.id ? { ...formData, id: data.id } : tamu
+    );
 
     // Save to localStorage
     localStorage.setItem("dataTamu", JSON.stringify(updatedData));
 
-    console.log("Form data:", dataWithId);
-    alert("Data tamu berhasil disimpan!");
+    console.log("Updated data:", { ...formData, id: data.id });
+    alert("Data tamu berhasil diperbarui!");
     navigate("/buku-tamu");
   };
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Data tidak ditemukan
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Data tamu yang akan diedit tidak ditemukan.
+          </p>
+          <button
+            onClick={() => navigate("/buku-tamu")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Kembali ke Buku Tamu
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Tambah Data Tamu</h1>
-          <p className="text-gray-600">
-            Isi form untuk menambah data tamu baru
-          </p>
+          <h1 className="text-2xl font-bold">Edit Data Tamu</h1>
+          <p className="text-gray-600">Perbarui data tamu yang sudah ada</p>
         </div>
         <button
           onClick={() => navigate("/buku-tamu")}
@@ -749,7 +775,7 @@ function TambahTamu() {
                 type="submit"
                 className="px-8 py-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                Simpan Data Tamu
+                Update Data Tamu
               </button>
             </div>
           </div>
@@ -759,4 +785,4 @@ function TambahTamu() {
   );
 }
 
-export default TambahTamu;
+export default EditTamu;
