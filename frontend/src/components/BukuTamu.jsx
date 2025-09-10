@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function BukuTamu() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -13,7 +15,7 @@ function BukuTamu() {
           </p>
         </div>
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => navigate("/buku-tamu/tambah")}
           className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
         >
           <svg

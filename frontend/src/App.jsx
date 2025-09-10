@@ -6,6 +6,7 @@ import Settings from "./components/Settings";
 import Login from "./components/Login";
 import { AuthProvider } from "./auth/AuthContext";
 import BukuTamu from "./components/BukuTamu";
+import TambahTamu from "./components/TambahTamu";
 import Welcome from "./components/Welcome";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
             <Route path="welcome" element={<Welcome />} />
             <Route index element={<Home />} />
             <Route path="buku-tamu" element={<BukuTamu />} />
+            <Route path="buku-tamu/tambah" element={<TambahTamu />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="login" element={<Login />} />
