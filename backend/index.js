@@ -210,7 +210,7 @@ app.get("/tamu", async (req, res) => {
     const conn = await dbPool.getConnection();
     try {
       const [rows] = await conn.query(
-        "SELECT idvisit, namatamu, instansi, keperluan, tujuan, divisi, jenisid, noid, cattamu, ket, foto, fotoid, DATE_FORMAT(jamdatang, '%Y-%m-%d %H:%i:%s') AS jamdatang, DATE_FORMAT(jamkeluar, '%Y-%m-%d %H:%i:%s') AS jamkeluar, status, statustamu FROM tabletamu ORDER BY jamdatang DESC LIMIT 100"
+        "SELECT idvisit, namatamu, instansi, keperluan, tujuan, divisi, jenisid, noid, cattamu, ket, foto, fotoid, DATE_FORMAT(jamdatang, '%Y-%m-%d %H:%i:%s') AS jamdatang, DATE_FORMAT(jamkeluar, '%Y-%m-%d %H:%i:%s') AS jamkeluar, status, statustamu FROM tabletamu ORDER BY idvisit DESC LIMIT 100"
       );
       res.json(rows);
     } finally {
