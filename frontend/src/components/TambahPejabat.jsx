@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+const API = import.meta.env.VITE_API_URL || "http://10.69.255.196:8004";
 
 function TambahPejabat() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ function TambahPejabat() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8004/api/jabatan", {
+      const response = await fetch(`${API}/api/jabatan`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

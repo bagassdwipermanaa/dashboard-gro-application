@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+const API = import.meta.env.VITE_API_URL || "http://10.69.255.196:8004";
 
 function EditPejabat() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ function EditPejabat() {
 
     try {
       const response = await fetch(
-        `http://localhost:8004/api/jabatan/${pejabatData.idjabatan}`,
+        `${API}/api/jabatan/${pejabatData.idjabatan}`,
         {
           method: "PUT",
           headers: {

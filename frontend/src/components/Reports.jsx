@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
+const API = import.meta.env.VITE_API_URL || "http://10.69.255.196:8004";
 
 function Reports() {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ function Reports() {
   const fetchDataTamu = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3004/api/tamu");
+      const response = await fetch(`${API}/tamu`);
       if (response.ok) {
         const data = await response.json();
         setDataTamu(data);

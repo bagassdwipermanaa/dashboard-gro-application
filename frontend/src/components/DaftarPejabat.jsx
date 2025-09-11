@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 
+const API = import.meta.env.VITE_API_URL || "http://10.69.255.196:8004";
+
 function DaftarPejabat() {
   const navigate = useNavigate();
   const [pejabat, setPejabat] = useState([]);
@@ -19,7 +21,7 @@ function DaftarPejabat() {
   const fetchDataPejabat = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8004/api/jabatan");
+      const response = await fetch(`${API}/api/jabatan`);
       if (response.ok) {
         const data = await response.json();
         setPejabat(data);
@@ -36,7 +38,7 @@ function DaftarPejabat() {
   const handleDeleteConfirm = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8004/api/jabatan/${deleteModal.pejabat.idjabatan}`,
+        `${API}/api/jabatan/${deleteModal.pejabat.idjabatan}`,
         {
           method: "DELETE",
         }
