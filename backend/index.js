@@ -830,6 +830,173 @@ app.delete("/api/jabatan/:idjabatan", async (req, res) => {
   }
 });
 
+// ===== DASHBOARD STATISTICS ENDPOINTS =====
+
+// Get dashboard statistics
+app.get("/api/dashboard/stats", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    try {
+      // Get current date ranges
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const lastWeek = new Date(today);
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      const lastMonth = new Date(today);
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+      // Total visitors today
+      const [todayVisitors] = await conn.query(
+        `SELECT COUNT(*) as count FROM tabletamu WHERE DATE(jamdatang) = CURDATE()`
+      );
+
+      // Total visitors yesterday
+      const [yesterdayVisitors] = await conn.query(
+        `SELECT COUNT(*) as count FROM tabletamu WHERE DATE(jamdatang) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`
+      );
+
+      // Total visitors this week
+      const [weekVisitors] = await conn.query(
+        `SELECT COUNT(*) as count FROM tabletamu WHERE jamdatang >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)`
+      );
+
+      // Total visitors this month
+      const [monthVisitors] = await conn.query(
+        `SELECT COUNT(*) as count FROM tabletamu WHERE MONTH(jamdatang) = MONTH(CURDATE()) AND YEAR(jamdatang) = YEAR(CURDATE())`
+      );
+
+      // Active visitors (currently in building)
+      const [activeVisitors] = await conn.query(
+        `SELECT COUNT(*) as count FROM tabletamu WHERE statustamu = 'masuk' AND jamkeluar IS NULL`
+      );
+
+      // Visitors by category
+      const [categoryStats] = await conn.query(
+        `SELECT 
+          COALESCE(cattamu, 'Tidak Diketahui') as category,
+          COUNT(*) as count 
+        FROM tabletamu 
+        WHERE jamdatang >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY cattamu 
+        ORDER BY count DESC`
+      );
+
+      // Daily visitors for last 30 days
+      const [dailyStats] = await conn.query(
+        `SELECT 
+          DATE(jamdatang) as date,
+          COUNT(*) as visitors
+        FROM tabletamu 
+        WHERE jamdatang >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(jamdatang)
+        ORDER BY date DESC
+        LIMIT 30`
+      );
+
+      // Recent activities
+      const [recentActivities] = await conn.query(
+        `SELECT 
+          'tamu' as type,
+          CONCAT('Check-in: ', namatamu) as title,
+          CONCAT(COALESCE(instansi, 'Tidak Diketahui'), ' - ', COALESCE(keperluan, 'Tidak Diketahui')) as subtitle,
+          jamdatang as timestamp
+        FROM tabletamu 
+        WHERE jamdatang >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        ORDER BY jamdatang DESC
+        LIMIT 10`
+      );
+
+      // Phone logs today
+      const [phoneLogsToday] = await conn.query(
+        `SELECT COUNT(*) as count FROM bukutelpon WHERE DATE(tanggal) = CURDATE()`
+      );
+
+      // Notes today
+      const [notesToday] = await conn.query(
+        `SELECT COUNT(*) as count FROM notes WHERE DATE(tanggal) = CURDATE()`
+      );
+
+      res.json({
+        success: true,
+        data: {
+          visitors: {
+            today: todayVisitors[0].count,
+            yesterday: yesterdayVisitors[0].count,
+            week: weekVisitors[0].count,
+            month: monthVisitors[0].count,
+            active: activeVisitors[0].count,
+          },
+          other: {
+            phoneLogsToday: phoneLogsToday[0].count,
+            notesToday: notesToday[0].count,
+          },
+          categories: categoryStats,
+          dailyStats: dailyStats.reverse(), // Reverse to show oldest first
+          recentActivities: recentActivities,
+        },
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Gagal mengambil statistik dashboard" });
+  }
+});
+
+// Get monthly visitor trends
+app.get("/api/dashboard/trends", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    try {
+      // Get monthly data for last 12 months
+      const [monthlyData] = await conn.query(
+        `SELECT 
+          MONTH(jamdatang) as month,
+          YEAR(jamdatang) as year,
+          COUNT(*) as visitors
+        FROM tabletamu 
+        WHERE jamdatang >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY YEAR(jamdatang), MONTH(jamdatang)
+        ORDER BY year, month`
+      );
+
+      // Get hourly distribution for today
+      const [hourlyData] = await conn.query(
+        `SELECT 
+          HOUR(jamdatang) as hour,
+          COUNT(*) as visitors
+        FROM tabletamu 
+        WHERE DATE(jamdatang) = CURDATE()
+        GROUP BY HOUR(jamdatang)
+        ORDER BY hour`
+      );
+
+      res.json({
+        success: true,
+        data: {
+          monthly: monthlyData,
+          hourly: hourlyData,
+        },
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error fetching trends:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Gagal mengambil data tren" });
+  }
+});
+
 initializeDatabasePool()
   .then(() => {
     app.listen(port, () => {
