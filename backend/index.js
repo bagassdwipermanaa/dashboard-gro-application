@@ -997,13 +997,8 @@ app.get("/api/dashboard/trends", async (req, res) => {
   }
 });
 
-initializeDatabasePool()
-  .then(() => {
-    app.listen(port, () => {
-      console.log(`Backend listening on http://localhost:${port}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Failed to initialize DB pool:", err);
-    process.exit(1);
-  });
+// Start HTTP server without blocking on initial DB connection.
+// Database pool will be initialized lazily by each endpoint when needed.
+app.listen(port, () => {
+  console.log(`Backend listening on http://localhost:${port}`);
+});
