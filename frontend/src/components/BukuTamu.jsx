@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 import Pagination from "./Pagination";
@@ -34,6 +34,70 @@ function BukuTamu() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [divisiFilter, setDivisiFilter] = useState("");
+  // UI state
+  const [openFilter, setOpenFilter] = useState(null);
+  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const [isPanelClosing, setIsPanelClosing] = useState(false);
+  const filterBodyRef = useRef(null);
+  const filterContentRef = useRef(null);
+  const [filterBodyHeight, setFilterBodyHeight] = useState(0);
+
+  useEffect(() => {
+    const contentEl = filterContentRef.current;
+    if (!contentEl) return;
+    // Measure natural height when expanding, set to 0 when collapsing
+    if (!filtersCollapsed) {
+      const measure = () => {
+        const hNow = contentEl.scrollHeight || 0;
+        setFilterBodyHeight(hNow);
+      };
+      // measure now and after next frame to capture late DOM changes
+      measure();
+      const id = requestAnimationFrame(measure);
+      return () => cancelAnimationFrame(id);
+    } else {
+      setFilterBodyHeight(0);
+    }
+  }, [filtersCollapsed]);
+
+  // Recalculate height when inner content changes (e.g., opening a panel)
+  useEffect(() => {
+    if (filtersCollapsed) return;
+    const contentEl = filterContentRef.current;
+    if (!contentEl) return;
+    const update = () => setFilterBodyHeight(contentEl.scrollHeight || 0);
+    // double RAF to ensure layout settled after panel mount/unmount
+    requestAnimationFrame(() => requestAnimationFrame(update));
+    const ro = new ResizeObserver(update);
+    ro.observe(contentEl);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [
+    filtersCollapsed,
+    openFilter,
+    searchTerm,
+    statusFilter,
+    kategoriFilter,
+    keperluanFilter,
+    divisiFilter,
+    dateFrom,
+    dateTo,
+  ]);
+  const statusOptions = ["", "Open", "Entry"];
+  const kategoriOptions = ["", "VIP", "Class 1", "Class 2", "Class 3"];
+  const keperluanOptions = [
+    "",
+    "Dinas",
+    "Pribadi",
+    "Meeting",
+    "Penawaran Jasa/Produk",
+    "Lainnya",
+  ];
+
+  // helper lama dihapus karena tidak digunakan lagi
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -294,251 +358,286 @@ function BukuTamu() {
       </header>
 
       {/* Advanced Filter Section */}
-      <div className="bg-white rounded-xl border p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">
-            🔍 Filter & Pencarian
-          </h3>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
+      <div className="bg-white rounded-xl border p-4 md:p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900">Filter</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:block text-sm text-gray-600">
               {filteredData.length} dari {dataTamu.length} data
             </span>
             <button
-              onClick={clearAllFilters}
-              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              onClick={() => {
+                if (!filtersCollapsed && openFilter) {
+                  setIsPanelClosing(true);
+                  setTimeout(() => {
+                    setOpenFilter(null);
+                    setIsPanelClosing(false);
+                    setFiltersCollapsed(true);
+                  }, 180);
+                } else {
+                  setFiltersCollapsed((v) => !v);
+                }
+              }}
+              className="px-3 py-1.5 text-sm border rounded-md bg-white hover:bg-gray-50 active:scale-[.98] transition-colors"
+              aria-expanded={!filtersCollapsed}
+              title={
+                filtersCollapsed ? "Tampilkan filter" : "Sembunyikan filter"
+              }
             >
-              Clear All
+              {filtersCollapsed ? "Tampilkan" : "Sembunyikan"}
+            </button>
+            <button
+              onClick={clearAllFilters}
+              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50"
+            >
+              Clear
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {/* Search Input */}
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🔍 Pencarian Global
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari nama, instansi, keperluan, tujuan, divisi, dll..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <svg
-                className="absolute left-3 top-3 w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        <div
+          ref={filterBodyRef}
+          className={`overflow-hidden transition-[height,opacity] duration-300 ease-in-out ${
+            filtersCollapsed
+              ? "opacity-0 pointer-events-none"
+              : "opacity-100 pointer-events-auto"
+          }`}
+          style={{ height: `${filterBodyHeight}px` }}
+        >
+          <div ref={filterContentRef} className="pt-2">
+            {/* Global search (selalu tampil) */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pencarian Global
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Cari nama, instansi, keperluan, tujuan, divisi, dll..."
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-              </svg>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                <svg
+                  className="absolute left-3 top-3 w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  ✕
-                </button>
-              )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📊 Status Tamu
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="Open">Open</option>
-              <option value="Entry">Entry</option>
-            </select>
-          </div>
+            {/* Row pill buttons ala contoh (gambar 2) */}
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              {[
+                {
+                  key: "status",
+                  label: statusFilter ? `Status: ${statusFilter}` : "Status",
+                },
+                {
+                  key: "kategori",
+                  label: kategoriFilter
+                    ? `Kategori: ${kategoriFilter}`
+                    : "Kategori",
+                },
+                {
+                  key: "keperluan",
+                  label: keperluanFilter
+                    ? `Keperluan: ${keperluanFilter}`
+                    : "Keperluan",
+                },
+                {
+                  key: "divisi",
+                  label: divisiFilter ? `Divisi: ${divisiFilter}` : "Divisi",
+                },
+                {
+                  key: "tanggal",
+                  label: dateFrom || dateTo ? `Tanggal` : "Tanggal",
+                },
+              ].map((btn) => (
+                <button
+                  key={btn.key}
+                  onClick={() => {
+                    if (openFilter === btn.key) {
+                      setIsPanelClosing(true);
+                      setTimeout(() => {
+                        setOpenFilter(null);
+                        setIsPanelClosing(false);
+                      }, 180);
+                    } else {
+                      setOpenFilter(btn.key);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-full border text-sm transition-colors hover:shadow-sm hover:ring-2 hover:ring-gray-200 active:scale-[.98] ${
+                    (btn.key === "status" && !!statusFilter) ||
+                    (btn.key === "kategori" && !!kategoriFilter) ||
+                    (btn.key === "keperluan" && !!keperluanFilter) ||
+                    (btn.key === "divisi" && !!divisiFilter) ||
+                    (btn.key === "tanggal" && (dateFrom || dateTo))
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
 
-          {/* Kategori Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              👑 Kategori Tamu
-            </label>
-            <select
-              value={kategoriFilter}
-              onChange={(e) => setKategoriFilter(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Kategori</option>
-              <option value="VIP">VIP</option>
-              <option value="Class 1">Class 1</option>
-              <option value="Class 2">Class 2</option>
-              <option value="Class 3">Class 3</option>
-            </select>
-          </div>
-
-          {/* Keperluan Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🎯 Keperluan
-            </label>
-            <select
-              value={keperluanFilter}
-              onChange={(e) => setKeperluanFilter(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Keperluan</option>
-              <option value="Dinas">Dinas</option>
-              <option value="Pribadi">Pribadi</option>
-              <option value="Meeting">Meeting</option>
-              <option value="Penawaran Jasa/Produk">
-                Penawaran Jasa/Produk
-              </option>
-              <option value="Lainnya">Lainnya</option>
-            </select>
-          </div>
-
-          {/* Divisi Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🏢 Divisi
-            </label>
-            <input
-              type="text"
-              value={divisiFilter}
-              onChange={(e) => setDivisiFilter(e.target.value)}
-              placeholder="Cari divisi..."
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Date From */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📅 Dari Tanggal
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Date To */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📅 Sampai Tanggal
-            </label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            {/* Popover panels */}
+            {openFilter && (
+              <div
+                className={`mt-3 w-full max-w-xl rounded-xl border bg-white shadow-lg p-4 transition duration-200 ease-out transform origin-top ${
+                  isPanelClosing
+                    ? "opacity-0 -translate-y-2 scale-[.98]"
+                    : "opacity-100 translate-y-0 scale-100"
+                }`}
+              >
+                {openFilter === "status" && (
+                  <div className="space-y-2">
+                    {statusOptions.map((opt, i) => (
+                      <label
+                        key={i}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="radio"
+                          name="status-opt"
+                          checked={statusFilter === opt}
+                          onChange={() => setStatusFilter(opt)}
+                        />
+                        <span>{opt || "Semua Status"}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {openFilter === "kategori" && (
+                  <div className="space-y-2">
+                    {kategoriOptions.map((opt, i) => (
+                      <label
+                        key={i}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="radio"
+                          name="kategori-opt"
+                          checked={kategoriFilter === opt}
+                          onChange={() => setKategoriFilter(opt)}
+                        />
+                        <span>{opt || "Semua Kategori"}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {openFilter === "keperluan" && (
+                  <div className="space-y-2">
+                    {keperluanOptions.map((opt, i) => (
+                      <label
+                        key={i}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="radio"
+                          name="keperluan-opt"
+                          checked={keperluanFilter === opt}
+                          onChange={() => setKeperluanFilter(opt)}
+                        />
+                        <span>{opt || "Semua Keperluan"}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {openFilter === "divisi" && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={divisiFilter}
+                      onChange={(e) => setDivisiFilter(e.target.value)}
+                      placeholder="Ketik nama divisi"
+                      className="w-full px-3 py-2 border rounded"
+                    />
+                  </div>
+                )}
+                {openFilter === "tanggal" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">
+                        Dari
+                      </label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="w-full px-3 py-2 border rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">
+                        Sampai
+                      </label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="w-full px-3 py-2 border rounded"
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="mt-4 flex items-center justify-between">
+                  <button
+                    onClick={() => {
+                      // clear only the active filter
+                      if (openFilter === "status") setStatusFilter("");
+                      if (openFilter === "kategori") setKategoriFilter("");
+                      if (openFilter === "keperluan") setKeperluanFilter("");
+                      if (openFilter === "divisi") setDivisiFilter("");
+                      if (openFilter === "tanggal") {
+                        setDateFrom("");
+                        setDateTo("");
+                      }
+                    }}
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Hapus
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setOpenFilter(null)}
+                      className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 active:scale-[.98]"
+                    >
+                      Tutup
+                    </button>
+                    <button
+                      onClick={() => setOpenFilter(null)}
+                      className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 active:scale-[.98]"
+                    >
+                      Simpan
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Active Filters Display */}
-        {(searchTerm ||
-          statusFilter ||
-          kategoriFilter ||
-          keperluanFilter ||
-          divisiFilter ||
-          dateFrom ||
-          dateTo) && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-gray-700">
-                Filter Aktif:
-              </span>
-              {searchTerm && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  Search: "{searchTerm}"
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="ml-1 hover:text-blue-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {statusFilter && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Status: {statusFilter}
-                  <button
-                    onClick={() => setStatusFilter("")}
-                    className="ml-1 hover:text-green-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {kategoriFilter && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                  Kategori: {kategoriFilter}
-                  <button
-                    onClick={() => setKategoriFilter("")}
-                    className="ml-1 hover:text-purple-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {keperluanFilter && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                  Keperluan: {keperluanFilter}
-                  <button
-                    onClick={() => setKeperluanFilter("")}
-                    className="ml-1 hover:text-yellow-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {divisiFilter && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
-                  Divisi: {divisiFilter}
-                  <button
-                    onClick={() => setDivisiFilter("")}
-                    className="ml-1 hover:text-orange-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {dateFrom && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                  Dari: {dateFrom}
-                  <button
-                    onClick={() => setDateFrom("")}
-                    className="ml-1 hover:text-indigo-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {dateTo && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                  Sampai: {dateTo}
-                  <button
-                    onClick={() => setDateTo("")}
-                    className="ml-1 hover:text-indigo-600"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Menghilangkan chip ringkasan filter aktif sesuai permintaan */}
       </div>
 
       <div className="rounded-xl border bg-white overflow-hidden">

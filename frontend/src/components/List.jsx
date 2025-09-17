@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 
@@ -18,6 +18,40 @@ function List() {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
+
+  // UI state for unified filter bar
+  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const filterBodyRef = useRef(null);
+  const filterContentRef = useRef(null);
+  const [filterBodyHeight, setFilterBodyHeight] = useState(0);
+
+  useEffect(() => {
+    const contentEl = filterContentRef.current;
+    if (!contentEl) return;
+    if (!filtersCollapsed) {
+      const measure = () => setFilterBodyHeight(contentEl.scrollHeight || 0);
+      measure();
+      const id = requestAnimationFrame(measure);
+      return () => cancelAnimationFrame(id);
+    } else {
+      setFilterBodyHeight(0);
+    }
+  }, [filtersCollapsed]);
+
+  useEffect(() => {
+    if (filtersCollapsed) return;
+    const contentEl = filterContentRef.current;
+    if (!contentEl) return;
+    const update = () => setFilterBodyHeight(contentEl.scrollHeight || 0);
+    requestAnimationFrame(() => requestAnimationFrame(update));
+    const ro = new ResizeObserver(update);
+    ro.observe(contentEl);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [filtersCollapsed, searchTerm, activeTab]);
 
   // Load data from backend on component mount
   useEffect(() => {
@@ -222,113 +256,83 @@ function List() {
         </div>
       </header>
 
-      {/* Search and Export Section */}
+      {/* Unified Filter Section */}
       <div className="bg-white rounded-xl border p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">
-            🔍 Pencarian & Export
-          </h3>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Filter</h3>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:block text-sm text-gray-600">
               {filteredData.length} dari {currentData.length} data
             </span>
             <button
-              onClick={clearSearch}
-              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              onClick={() => setFiltersCollapsed((v) => !v)}
+              className="px-3 py-1.5 text-sm border rounded-md bg-white hover:bg-gray-50 active:scale-[.98] transition-colors"
             >
-              Clear Search
+              {filtersCollapsed ? "Tampilkan" : "Sembunyikan"}
             </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Search Input */}
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🔍 Pencarian Global
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`Cari ${
-                  activeTab === "tamu"
-                    ? "nama, instansi, telepon, alamat, email..."
-                    : "nama, jabatan, divisi, telepon, extension, email..."
-                }`}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <svg
-                className="absolute left-3 top-3 w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              {searchTerm && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Export Button */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📊 Export
-            </label>
             <button
-              onClick={handleExport}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={clearSearch}
+              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              Export Data
+              Clear
             </button>
           </div>
         </div>
-
-        {/* Active Search Display */}
-        {searchTerm && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-gray-700">
-                Pencarian Aktif:
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                Search: "{searchTerm}"
-                <button
-                  onClick={clearSearch}
-                  className="ml-1 hover:text-blue-600"
+        <div
+          ref={filterBodyRef}
+          className={`overflow-hidden transition-[height,opacity] duration-300 ease-in-out ${
+            filtersCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+          style={{ height: `${filterBodyHeight}px` }}
+        >
+          <div ref={filterContentRef} className="pt-2">
+            {/* Search */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pencarian Global
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={`Cari ${
+                    activeTab === "tamu"
+                      ? "nama, instansi, telepon, alamat, email..."
+                      : "nama, jabatan, divisi, telepon, extension, email..."
+                  }`}
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <svg
+                  className="absolute left-3 top-3 w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  ✕
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Pills */}
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              {[{ key: "export", label: "Export" }].map((btn) => (
+                <button
+                  key={btn.key}
+                  onClick={handleExport}
+                  className={`px-4 py-2 rounded-full border text-sm transition-colors hover:shadow-sm hover:ring-2 hover:ring-gray-200 active:scale-[.98] bg-white text-gray-700 border-gray-300 hover:bg-gray-50`}
+                >
+                  {btn.label}
                 </button>
-              </span>
+              ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Table Section */}

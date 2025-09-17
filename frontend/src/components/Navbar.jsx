@@ -74,7 +74,7 @@ function Navbar() {
       onClick={closeAll}
     >
       <div
-        className="mx-auto max-w-6xl px-4 h-20 flex items-center gap-4"
+        className="w-full max-w-none px-6 lg:px-8 h-20 flex items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         <Link to="/" className="inline-flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 
@@ -18,6 +18,49 @@ function LogTelepon() {
   const [telpFilter, setTelpFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  // UI state for new filter bar
+  const [openFilter, setOpenFilter] = useState(null);
+  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const filterBodyRef = useRef(null);
+  const filterContentRef = useRef(null);
+  const [filterBodyHeight, setFilterBodyHeight] = useState(0);
+
+  useEffect(() => {
+    const contentEl = filterContentRef.current;
+    if (!contentEl) return;
+    if (!filtersCollapsed) {
+      const measure = () => setFilterBodyHeight(contentEl.scrollHeight || 0);
+      measure();
+      const id = requestAnimationFrame(measure);
+      return () => cancelAnimationFrame(id);
+    } else {
+      setFilterBodyHeight(0);
+    }
+  }, [filtersCollapsed]);
+
+  useEffect(() => {
+    if (filtersCollapsed) return;
+    const contentEl = filterContentRef.current;
+    if (!contentEl) return;
+    const update = () => setFilterBodyHeight(contentEl.scrollHeight || 0);
+    requestAnimationFrame(() => requestAnimationFrame(update));
+    const ro = new ResizeObserver(update);
+    ro.observe(contentEl);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [
+    filtersCollapsed,
+    openFilter,
+    searchTerm,
+    statusFilter,
+    telpFilter,
+    dateFrom,
+    dateTo,
+  ]);
 
   // Load data from backend on component mount
   useEffect(() => {
@@ -162,149 +205,178 @@ function LogTelepon() {
         </button>
       </header>
 
-      {/* Advanced Filter Section */}
+      {/* New Filter Bar with pills */}
       <div className="bg-white rounded-xl border p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">
-            🔍 Filter & Pencarian
-          </h3>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Filter</h3>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:block text-sm text-gray-600">
               {filteredData.length} dari {dataLogTelepon.length} data
             </span>
             <button
-              onClick={clearAllFilters}
-              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              onClick={() => setFiltersCollapsed((v) => !v)}
+              className="px-3 py-1.5 text-sm border rounded-md bg-white hover:bg-gray-50 active:scale-[.98] transition-colors"
             >
-              Clear All
+              {filtersCollapsed ? "Tampilkan" : "Sembunyikan"}
             </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {/* Search Input */}
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🔍 Pencarian Global
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari nama penelpon, no telepon, nama dituju, pesan, dll..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <svg
-                className="absolute left-3 top-3 w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📊 Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="Open">Open</option>
-              <option value="Closed">Closed</option>
-            </select>
-          </div>
-
-          {/* Telp Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📞 Telp. Keluar/Masuk
-            </label>
-            <select
-              value={telpFilter}
-              onChange={(e) => setTelpFilter(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua</option>
-              <option value="Keluar">Keluar</option>
-              <option value="Masuk">Masuk</option>
-            </select>
-          </div>
-
-          {/* Date From */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📅 Dari Tanggal
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Date To */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📅 Sampai Tanggal
-            </label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Export Button */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📊 Export
-            </label>
             <button
-              onClick={handleExport}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={clearAllFilters}
+              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              Export Data
+              Clear
             </button>
           </div>
         </div>
+        <div
+          ref={filterBodyRef}
+          className={`overflow-hidden transition-[height,opacity] duration-300 ease-in-out ${
+            filtersCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+          style={{ height: `${filterBodyHeight}px` }}
+        >
+          <div ref={filterContentRef} className="pt-2">
+            {/* Search */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pencarian Global
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Cari nama penelpon, no telepon, nama dituju, pesan, dll..."
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <svg
+                  className="absolute left-3 top-3 w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
 
-        {/* Active Filters Display */}
+            {/* Pills */}
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              {[
+                {
+                  key: "status",
+                  label: statusFilter ? `Status: ${statusFilter}` : "Status",
+                },
+                {
+                  key: "telp",
+                  label: telpFilter ? `Telp: ${telpFilter}` : "Telp",
+                },
+                {
+                  key: "tanggal",
+                  label: dateFrom || dateTo ? "Tanggal" : "Tanggal",
+                },
+              ].map((btn) => (
+                <button
+                  key={btn.key}
+                  onClick={() =>
+                    setOpenFilter((prev) => (prev === btn.key ? null : btn.key))
+                  }
+                  className={`px-4 py-2 rounded-full border text-sm transition-colors hover:shadow-sm hover:ring-2 hover:ring-gray-200 active:scale-[.98] ${
+                    (btn.key === "status" && !!statusFilter) ||
+                    (btn.key === "telp" && !!telpFilter) ||
+                    (btn.key === "tanggal" && (dateFrom || dateTo))
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Panels */}
+            {openFilter && (
+              <div className="mt-3 w-full max-w-xl rounded-xl border bg-white shadow-lg p-4 transition-all duration-200 ease-out transform origin-top">
+                {openFilter === "status" && (
+                  <div className="space-y-2">
+                    {["", "Open", "Closed"].map((opt, i) => (
+                      <label
+                        key={i}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="radio"
+                          name="status-opt"
+                          checked={statusFilter === opt}
+                          onChange={() => setStatusFilter(opt)}
+                        />
+                        <span>{opt || "Semua Status"}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {openFilter === "telp" && (
+                  <div className="space-y-2">
+                    {["", "Keluar", "Masuk"].map((opt, i) => (
+                      <label
+                        key={i}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="radio"
+                          name="telp-opt"
+                          checked={telpFilter === opt}
+                          onChange={() => setTelpFilter(opt)}
+                        />
+                        <span>{opt || "Semua"}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {openFilter === "tanggal" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">
+                        Dari
+                      </label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="w-full px-3 py-2 border rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">
+                        Sampai
+                      </label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="w-full px-3 py-2 border rounded"
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() => setOpenFilter(null)}
+                    className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 active:scale-[.98]"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Active Filters Display (tetap) */}
         {(searchTerm || statusFilter || telpFilter || dateFrom || dateTo) && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 flex-wrap">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
 
@@ -8,6 +8,38 @@ function DaftarPejabat() {
   const navigate = useNavigate();
   const [pejabat, setPejabat] = useState([]);
   const [search, setSearch] = useState("");
+  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const filterBodyRef = useRef(null);
+  const filterContentRef = useRef(null);
+  const [filterBodyHeight, setFilterBodyHeight] = useState(0);
+
+  useEffect(() => {
+    const el = filterContentRef.current;
+    if (!el) return;
+    if (!filtersCollapsed) {
+      const measure = () => setFilterBodyHeight(el.scrollHeight || 0);
+      measure();
+      const id = requestAnimationFrame(measure);
+      return () => cancelAnimationFrame(id);
+    } else {
+      setFilterBodyHeight(0);
+    }
+  }, [filtersCollapsed]);
+
+  useEffect(() => {
+    if (filtersCollapsed) return;
+    const el = filterContentRef.current;
+    if (!el) return;
+    const update = () => setFilterBodyHeight(el.scrollHeight || 0);
+    requestAnimationFrame(() => requestAnimationFrame(update));
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [filtersCollapsed, search]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState({
     show: false,
@@ -79,25 +111,74 @@ function DaftarPejabat() {
         <p className="text-gray-600">Master data pejabat/penanggung jawab.</p>
       </div>
 
-      <div className="bg-white rounded-xl border p-4 flex items-center gap-3">
-        <input
-          placeholder="Cari nama / divisi / bidang / level..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 rounded-md border flex-1"
-        />
-        <button
-          className="px-3 py-2 rounded-md border bg-green-500 text-white hover:bg-green-600"
-          onClick={() => navigate("/tambah-pejabat")}
+      <div className="bg-white rounded-xl border p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Filter</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFiltersCollapsed((v) => !v)}
+              className="px-3 py-1.5 text-sm border rounded-md bg-white hover:bg-gray-50 active:scale-[.98] transition-colors"
+            >
+              {filtersCollapsed ? "Tampilkan" : "Sembunyikan"}
+            </button>
+            <button
+              onClick={() => setSearch("")}
+              className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+        <div
+          ref={filterBodyRef}
+          className={`overflow-hidden transition-[height,opacity] duration-300 ease-in-out ${
+            filtersCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+          style={{ height: `${filterBodyHeight}px` }}
         >
-          Tambah Pejabat
-        </button>
-        <button
-          className="px-3 py-2 rounded-md border bg-blue-500 text-white hover:bg-blue-600"
-          onClick={fetchDataPejabat}
-        >
-          Refresh Data
-        </button>
+          <div ref={filterContentRef} className="pt-2">
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pencarian Global
+              </label>
+              <div className="relative">
+                <input
+                  placeholder="Cari nama / divisi / bidang / level..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <svg
+                  className="absolute left-3 top-3 w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              <button
+                className="px-4 py-2 rounded-full border text-sm bg-green-600 text-white hover:bg-green-700"
+                onClick={() => navigate("/tambah-pejabat")}
+              >
+                Tambah Pejabat
+              </button>
+              <button
+                className="px-4 py-2 rounded-full border text-sm bg-blue-600 text-white hover:bg-blue-700"
+                onClick={fetchDataPejabat}
+              >
+                Refresh Data
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-white overflow-hidden">
