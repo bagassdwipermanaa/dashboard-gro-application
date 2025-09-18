@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import TujuanSelector from "./TujuanSelector";
 
 function TambahTamu() {
   const navigate = useNavigate();
@@ -317,14 +318,12 @@ function TambahTamu() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tujuan *
               </label>
-              <input
-                type="text"
-                name="tujuan"
+              <TujuanSelector
                 value={formData.tujuan}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Lokasi yang akan dikunjungi"
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, tujuan: value }))
+                }
+                placeholder="Tujuan yang akan dikunjungi"
               />
             </div>
 

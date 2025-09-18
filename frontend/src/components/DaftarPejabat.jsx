@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "./DeleteModal";
-
-const API = import.meta.env.VITE_API_URL || "http://10.69.255.196:8004";
+import Pagination from "./Pagination";
 
 function DaftarPejabat() {
   const navigate = useNavigate();
@@ -46,6 +45,10 @@ function DaftarPejabat() {
     pejabat: null,
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   useEffect(() => {
     fetchDataPejabat();
   }, []);
@@ -53,7 +56,7 @@ function DaftarPejabat() {
   const fetchDataPejabat = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API}/api/jabatan`);
+      const response = await fetch("/api/jabatan");
       if (response.ok) {
         const data = await response.json();
         setPejabat(data);
@@ -70,7 +73,7 @@ function DaftarPejabat() {
   const handleDeleteConfirm = async () => {
     try {
       const response = await fetch(
-        `${API}/api/jabatan/${deleteModal.pejabat.idjabatan}`,
+        `/api/jabatan/${deleteModal.pejabat.idjabatan}`,
         {
           method: "DELETE",
         }
@@ -103,6 +106,18 @@ function DaftarPejabat() {
         p.level?.toLowerCase().includes(s)
     );
   }, [pejabat, search]);
+
+  // Pagination calculations
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const firstItemIndex = (currentPage - 1) * pageSize;
+  const lastItemIndex = Math.min(firstItemIndex + pageSize, totalItems);
+  const pageItems = filtered.slice(firstItemIndex, lastItemIndex);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   return (
     <div className="space-y-6">
@@ -182,21 +197,38 @@ function DaftarPejabat() {
       </div>
 
       <div className="rounded-xl border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b text-sm text-gray-600">
-          {loading ? "Loading..." : `${filtered.length} hasil`}
+        <div className="px-4 py-3 border-b flex items-center justify-between">
+          <div className="text-sm text-gray-600">Data Pejabat</div>
+          <div className="flex items-center gap-3 text-xs text-gray-600">
+            <span>
+              Menampilkan {totalItems === 0 ? 0 : firstItemIndex + 1}–
+              {lastItemIndex} dari {totalItems} hasil
+            </span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="border rounded px-2 py-1 text-xs"
+            >
+              <option value={10}>10 / halaman</option>
+              <option value={25}>25 / halaman</option>
+              <option value={50}>50 / halaman</option>
+              <option value={100}>100 / halaman</option>
+            </select>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 {[
+                  "No",
+                  "Aksi",
                   "Nama",
                   "Divisi",
                   "Bidang",
                   "Level",
                   "Gedung",
                   "Ruang",
-                  "Aksi",
                 ].map((h) => (
                   <th
                     key={h}
@@ -211,7 +243,7 @@ function DaftarPejabat() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-3 py-10 text-center text-gray-500"
                   >
                     Loading data...
@@ -220,21 +252,16 @@ function DaftarPejabat() {
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-3 py-10 text-center text-gray-500"
                   >
                     Belum ada data
                   </td>
                 </tr>
               ) : (
-                filtered.map((p, idx) => (
+                pageItems.map((p, idx) => (
                   <tr key={idx} className="border-b hover:bg-gray-50">
-                    <td className="px-3 py-2">{p.nama || "-"}</td>
-                    <td className="px-3 py-2">{p.divisi || "-"}</td>
-                    <td className="px-3 py-2">{p.bidang || "-"}</td>
-                    <td className="px-3 py-2">{p.level || "-"}</td>
-                    <td className="px-3 py-2">{p.gedung || "-"}</td>
-                    <td className="px-3 py-2">{p.ruang || "-"}</td>
+                    <td className="px-3 py-2">{firstItemIndex + idx + 1}</td>
                     <td className="px-3 py-2">
                       <div className="flex gap-2">
                         <button
@@ -257,11 +284,27 @@ function DaftarPejabat() {
                         </button>
                       </div>
                     </td>
+                    <td className="px-3 py-2 font-medium">{p.nama || "-"}</td>
+                    <td className="px-3 py-2">{p.divisi || "-"}</td>
+                    <td className="px-3 py-2">{p.bidang || "-"}</td>
+                    <td className="px-3 py-2">{p.level || "-"}</td>
+                    <td className="px-3 py-2">{p.gedung || "-"}</td>
+                    <td className="px-3 py-2">{p.ruang || "-"}</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-3 border-t flex items-center justify-between text-sm">
+          <div className="text-gray-600">
+            Halaman {currentPage} dari {totalPages}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onChange={(p) => setCurrentPage(p)}
+          />
         </div>
       </div>
 

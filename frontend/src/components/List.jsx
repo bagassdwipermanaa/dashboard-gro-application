@@ -352,6 +352,7 @@ function List() {
                   <>
                     {[
                       "No",
+                      "Actions",
                       "Nama",
                       "Instansi",
                       "No.Tlp 1",
@@ -359,7 +360,6 @@ function List() {
                       "Alamat",
                       "Fax",
                       "Email",
-                      "Actions",
                     ].map((h) => (
                       <th
                         key={h}
@@ -373,6 +373,7 @@ function List() {
                   <>
                     {[
                       "No",
+                      "Actions",
                       "ID.Tlp",
                       "Nama",
                       "Jabatan",
@@ -381,7 +382,6 @@ function List() {
                       "No.Tlp 2",
                       "Extension",
                       "Email",
-                      "Actions",
                     ].map((h) => (
                       <th
                         key={h}
@@ -410,37 +410,6 @@ function List() {
                 filteredData.map((item, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="px-3 py-2">{index + 1}</td>
-                    {activeTab === "tamu" ? (
-                      <>
-                        <td className="px-3 py-2 font-medium">
-                          {item.nama || "-"}
-                        </td>
-                        <td className="px-3 py-2">{item.instansi || "-"}</td>
-                        <td className="px-3 py-2">{item.noTlp1 || "-"}</td>
-                        <td className="px-3 py-2">{item.noTlp2 || "-"}</td>
-                        <td
-                          className="px-3 py-2 max-w-xs truncate"
-                          title={item.alamat}
-                        >
-                          {item.alamat || "-"}
-                        </td>
-                        <td className="px-3 py-2">{item.fax || "-"}</td>
-                        <td className="px-3 py-2">{item.email || "-"}</td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-3 py-2">{item.idTlp || "-"}</td>
-                        <td className="px-3 py-2 font-medium">
-                          {item.nama || "(belum diset)"}
-                        </td>
-                        <td className="px-3 py-2">{item.jabatan || "-"}</td>
-                        <td className="px-3 py-2">{item.divisi || "-"}</td>
-                        <td className="px-3 py-2">{item.noTlp1 || "-"}</td>
-                        <td className="px-3 py-2">{item.noTlp2 || "-"}</td>
-                        <td className="px-3 py-2">{item.extension || "-"}</td>
-                        <td className="px-3 py-2">{item.email || "-"}</td>
-                      </>
-                    )}
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button
@@ -487,6 +456,37 @@ function List() {
                         </button>
                       </div>
                     </td>
+                    {activeTab === "tamu" ? (
+                      <>
+                        <td className="px-3 py-2 font-medium">
+                          {item.nama || "-"}
+                        </td>
+                        <td className="px-3 py-2">{item.instansi || "-"}</td>
+                        <td className="px-3 py-2">{item.noTlp1 || "-"}</td>
+                        <td className="px-3 py-2">{item.noTlp2 || "-"}</td>
+                        <td
+                          className="px-3 py-2 max-w-xs truncate"
+                          title={item.alamat}
+                        >
+                          {item.alamat || "-"}
+                        </td>
+                        <td className="px-3 py-2">{item.fax || "-"}</td>
+                        <td className="px-3 py-2">{item.email || "-"}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-3 py-2">{item.idTlp || "-"}</td>
+                        <td className="px-3 py-2 font-medium">
+                          {item.nama || "(belum diset)"}
+                        </td>
+                        <td className="px-3 py-2">{item.jabatan || "-"}</td>
+                        <td className="px-3 py-2">{item.divisi || "-"}</td>
+                        <td className="px-3 py-2">{item.noTlp1 || "-"}</td>
+                        <td className="px-3 py-2">{item.noTlp2 || "-"}</td>
+                        <td className="px-3 py-2">{item.extension || "-"}</td>
+                        <td className="px-3 py-2">{item.email || "-"}</td>
+                      </>
+                    )}
                   </tr>
                 ))
               )}

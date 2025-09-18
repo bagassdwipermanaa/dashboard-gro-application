@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import TujuanSelector from "./TujuanSelector";
 
 function EditTamu() {
   const navigate = useNavigate();
@@ -37,7 +38,32 @@ function EditTamu() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Jika status tamu berubah, handle waktu keluar
+    if (name === "statusTamu") {
+      if (value === "Closed") {
+        // Jika status menjadi Closed, set waktu keluar dengan waktu saat ini
+        const now = new Date();
+        const formattedTime = now.toISOString().slice(0, 19).replace("T", " ");
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          waktuKeluar: formattedTime,
+        }));
+      } else if (value === "Open" || value === "Entry") {
+        // Jika status menjadi Open atau Entry, reset waktu keluar
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          waktuKeluar: "",
+        }));
+      } else {
+        // Untuk status lainnya, hanya update status
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -327,14 +353,12 @@ function EditTamu() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tujuan *
               </label>
-              <input
-                type="text"
-                name="tujuan"
+              <TujuanSelector
                 value={formData.tujuan}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Lokasi yang akan dikunjungi"
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, tujuan: value }))
+                }
+                placeholder="Tujuan yang akan dikunjungi"
               />
             </div>
 

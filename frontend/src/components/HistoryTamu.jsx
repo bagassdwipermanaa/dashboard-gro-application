@@ -221,11 +221,33 @@ function HistoryTamu() {
         const msg = await res.text();
         throw new Error(msg || `Gagal update status (HTTP ${res.status})`);
       }
-      // Perbarui data sumber
-      const updatedAll = dataTamu.map((t) =>
-        t.idvisit === idvisit ? { ...t, statusTamu: newStatus } : t
-      );
+
+      // Perbarui data sumber dengan handle waktu keluar
+      const updatedAll = dataTamu.map((t) => {
+        if (t.idvisit === idvisit) {
+          let updatedTamu = { ...t, statusTamu: newStatus };
+
+          // Update waktu keluar berdasarkan status
+          if (newStatus === "Closed") {
+            // Jika status menjadi Closed, set waktu keluar dengan waktu saat ini
+            const now = new Date();
+            const formattedTime = now
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ");
+            updatedTamu.waktuKeluar = formattedTime;
+          } else if (newStatus === "Open" || newStatus === "Entry") {
+            // Jika status menjadi Open atau Entry, reset waktu keluar
+            updatedTamu.waktuKeluar = "";
+          }
+
+          return updatedTamu;
+        }
+        return t;
+      });
+
       setDataTamu(updatedAll);
+
       // Karena halaman History hanya menampilkan Closed, jika berubah ke Open/Entry maka menghilang dari daftar
       const updatedFiltered = updatedAll.filter(
         (t) => t.statusTamu === "Closed"
@@ -575,6 +597,7 @@ function HistoryTamu() {
               <tr>
                 {[
                   "",
+                  "Actions",
                   "Nama",
                   "Instansi",
                   "Keperluan",
@@ -587,7 +610,6 @@ function HistoryTamu() {
                   "No. ID Tamu",
                   "Keterangan",
                   "Status Tamu",
-                  "Actions",
                 ].map((h) => (
                   <th
                     key={h}
@@ -613,41 +635,6 @@ function HistoryTamu() {
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="px-3 py-2">
                       <input type="checkbox" className="rounded" />
-                    </td>
-                    <td
-                      className="px-3 py-2 font-medium cursor-pointer hover:text-blue-600"
-                      onClick={() => setSelectedTamu(tamu)}
-                    >
-                      {tamu.nama}
-                    </td>
-                    <td className="px-3 py-2">{tamu.instansi}</td>
-                    <td className="px-3 py-2">{tamu.keperluan}</td>
-                    <td className="px-3 py-2">{tamu.tujuan}</td>
-                    <td className="px-3 py-2">{tamu.divisi}</td>
-                    <td className="px-3 py-2">{tamu.jenisKartu || "-"}</td>
-                    <td className="px-3 py-2">{tamu.kategoriTamu || "-"}</td>
-                    <td className="px-3 py-2">{tamu.waktuBerkunjung || "-"}</td>
-                    <td className="px-3 py-2">{tamu.waktuKeluar || "-"}</td>
-                    <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
-                    <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
-                    <td className="px-3 py-2">
-                      <select
-                        value={tamu.statusTamu || ""}
-                        onChange={(e) =>
-                          updateStatusTamu(index, e.target.value)
-                        }
-                        className={`px-2 py-1 rounded-full text-xs border-0 ${
-                          tamu.statusTamu === "Closed"
-                            ? "bg-red-100 text-red-800"
-                            : tamu.statusTamu === "Open"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        <option value="Open">Open</option>
-                        <option value="Entry">Entry</option>
-                        <option value="Closed">Closed</option>
-                      </select>
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
@@ -723,6 +710,41 @@ function HistoryTamu() {
                           </svg>
                         </button>
                       </div>
+                    </td>
+                    <td
+                      className="px-3 py-2 font-medium cursor-pointer hover:text-blue-600"
+                      onClick={() => setSelectedTamu(tamu)}
+                    >
+                      {tamu.nama}
+                    </td>
+                    <td className="px-3 py-2">{tamu.instansi}</td>
+                    <td className="px-3 py-2">{tamu.keperluan}</td>
+                    <td className="px-3 py-2">{tamu.tujuan}</td>
+                    <td className="px-3 py-2">{tamu.divisi}</td>
+                    <td className="px-3 py-2">{tamu.jenisKartu || "-"}</td>
+                    <td className="px-3 py-2">{tamu.kategoriTamu || "-"}</td>
+                    <td className="px-3 py-2">{tamu.waktuBerkunjung || "-"}</td>
+                    <td className="px-3 py-2">{tamu.waktuKeluar || "-"}</td>
+                    <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
+                    <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
+                    <td className="px-3 py-2">
+                      <select
+                        value={tamu.statusTamu || ""}
+                        onChange={(e) =>
+                          updateStatusTamu(index, e.target.value)
+                        }
+                        className={`px-2 py-1 rounded-full text-xs border-0 ${
+                          tamu.statusTamu === "Closed"
+                            ? "bg-red-100 text-red-800"
+                            : tamu.statusTamu === "Open"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        <option value="Open">Open</option>
+                        <option value="Entry">Entry</option>
+                        <option value="Closed">Closed</option>
+                      </select>
                     </td>
                   </tr>
                 ))

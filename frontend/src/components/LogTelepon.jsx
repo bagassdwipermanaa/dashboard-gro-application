@@ -172,11 +172,6 @@ function LogTelepon() {
     setDateTo("");
   };
 
-  const handleExport = () => {
-    // TODO: Implement export functionality
-    alert("Export functionality akan diimplementasikan");
-  };
-
   return (
     <div className="space-y-5">
       <header className="flex items-center justify-between">
@@ -457,6 +452,7 @@ function LogTelepon() {
               <tr>
                 {[
                   "No",
+                  "Actions",
                   "Nama Penelpon",
                   "No Penelpon",
                   "Nama Dituju",
@@ -467,7 +463,6 @@ function LogTelepon() {
                   "Keterangan",
                   "Telp. Keluar/masuk",
                   "Status",
-                  "Actions",
                 ].map((h) => (
                   <th
                     key={h}
@@ -494,50 +489,6 @@ function LogTelepon() {
                 filteredData.map((log, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="px-3 py-2">{index + 1}</td>
-                    <td className="px-3 py-2 font-medium">
-                      {log.namaPenelpon}
-                    </td>
-                    <td className="px-3 py-2">{log.noPenelpon}</td>
-                    <td className="px-3 py-2">{log.namaDituju}</td>
-                    <td className="px-3 py-2">{log.noDituju}</td>
-                    <td className="px-3 py-2">
-                      {new Date(log.tanggal).toLocaleDateString("id-ID")}
-                    </td>
-                    <td className="px-3 py-2">{log.jam}</td>
-                    <td
-                      className="px-3 py-2 max-w-xs truncate"
-                      title={log.pesan}
-                    >
-                      {log.pesan || "-"}
-                    </td>
-                    <td
-                      className="px-3 py-2 max-w-xs truncate"
-                      title={log.keterangan}
-                    >
-                      {log.keterangan || "-"}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          log.telpKeluarMasuk === "Keluar"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {log.telpKeluarMasuk}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          log.status === "Open"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {log.status}
-                      </span>
-                    </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button
@@ -586,6 +537,50 @@ function LogTelepon() {
                           </svg>
                         </button>
                       </div>
+                    </td>
+                    <td className="px-3 py-2 font-medium">
+                      {log.namaPenelpon}
+                    </td>
+                    <td className="px-3 py-2">{log.noPenelpon}</td>
+                    <td className="px-3 py-2">{log.namaDituju}</td>
+                    <td className="px-3 py-2">{log.noDituju}</td>
+                    <td className="px-3 py-2">
+                      {new Date(log.tanggal).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-3 py-2">{log.jam}</td>
+                    <td
+                      className="px-3 py-2 max-w-xs truncate"
+                      title={log.pesan}
+                    >
+                      {log.pesan || "-"}
+                    </td>
+                    <td
+                      className="px-3 py-2 max-w-xs truncate"
+                      title={log.keterangan}
+                    >
+                      {log.keterangan || "-"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          log.telpKeluarMasuk === "Keluar"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {log.telpKeluarMasuk}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          log.status === "Open"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {log.status}
+                      </span>
                     </td>
                   </tr>
                 ))

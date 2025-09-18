@@ -403,12 +403,12 @@ function Notes() {
               <tr>
                 {[
                   "No",
+                  "Actions",
                   "Dari",
                   "Tujuan",
                   "Tanggal",
                   "Pesan",
                   "Status",
-                  "Actions",
                 ].map((h) => (
                   <th
                     key={h}
@@ -435,28 +435,6 @@ function Notes() {
                 filteredData.map((note, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="px-3 py-2">{index + 1}</td>
-                    <td className="px-3 py-2 font-medium">{note.dari}</td>
-                    <td className="px-3 py-2">{note.tujuan}</td>
-                    <td className="px-3 py-2">
-                      {new Date(note.tanggal).toLocaleDateString("id-ID")}
-                    </td>
-                    <td
-                      className="px-3 py-2 max-w-xs truncate"
-                      title={note.pesan}
-                    >
-                      {note.pesan}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          note.status === "Open"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {note.status}
-                      </span>
-                    </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button
@@ -502,6 +480,28 @@ function Notes() {
                           </svg>
                         </button>
                       </div>
+                    </td>
+                    <td className="px-3 py-2 font-medium">{note.dari}</td>
+                    <td className="px-3 py-2">{note.tujuan}</td>
+                    <td className="px-3 py-2">
+                      {new Date(note.tanggal).toLocaleDateString("id-ID")}
+                    </td>
+                    <td
+                      className="px-3 py-2 max-w-xs truncate"
+                      title={note.pesan}
+                    >
+                      {note.pesan}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          note.status === "Open"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {note.status}
+                      </span>
                     </td>
                   </tr>
                 ))

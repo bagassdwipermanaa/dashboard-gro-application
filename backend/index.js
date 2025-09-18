@@ -660,10 +660,27 @@ app.patch("/tamu/:idvisit/status", async (req, res) => {
     }
     const conn = await dbPool.getConnection();
     try {
-      const [result] = await conn.query(
-        "UPDATE tabletamu SET statustamu = ? WHERE idvisit = ?",
-        [statustamu, idvisit]
-      );
+      let sql, params;
+
+      if (statustamu === "Closed") {
+        // Jika status diubah menjadi Closed, update waktu keluar dengan waktu saat ini
+        const now = new Date();
+        const formattedTime = now.toISOString().slice(0, 19).replace("T", " ");
+        sql =
+          "UPDATE tabletamu SET statustamu = ?, jamkeluar = ? WHERE idvisit = ?";
+        params = [statustamu, formattedTime, idvisit];
+      } else if (statustamu === "Open" || statustamu === "Entry") {
+        // Jika status diubah menjadi Open atau Entry, reset waktu keluar menjadi NULL
+        sql =
+          "UPDATE tabletamu SET statustamu = ?, jamkeluar = NULL WHERE idvisit = ?";
+        params = [statustamu, idvisit];
+      } else {
+        // Untuk status lainnya, hanya update status tanpa mengubah waktu keluar
+        sql = "UPDATE tabletamu SET statustamu = ? WHERE idvisit = ?";
+        params = [statustamu, idvisit];
+      }
+
+      const [result] = await conn.query(sql, params);
       if ((result?.affectedRows ?? 0) === 0) {
         return res.status(404).json({ error: "Data tidak ditemukan" });
       }
@@ -742,7 +759,7 @@ app.get("/api/jabatan", async (req, res) => {
     if (!dbPool) await initializeDatabasePool();
     const conn = await dbPool.getConnection();
     try {
-      const query = `SELECT * FROM data_jabatan ORDER BY nama ASC`;
+      const query = `SELECT * FROM data_jabatan ORDER BY idjabatan ASC`;
       const [rows] = await conn.query(query);
       res.json(rows);
     } finally {

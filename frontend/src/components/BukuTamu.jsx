@@ -270,12 +270,24 @@ function BukuTamu() {
       }
       const updated = [...dataTamu];
       updated[index].statusTamu = newStatus;
-      // Jika status menjadi Closed, hapus dari daftar Buku Tamu (akan terlihat di History)
-      const finalList =
-        newStatus === "Closed"
-          ? updated.filter((_, i) => i !== index)
-          : updated;
-      setDataTamu(finalList);
+
+      // Update waktu keluar berdasarkan status
+      if (newStatus === "Closed") {
+        // Jika status menjadi Closed, set waktu keluar dengan waktu saat ini
+        const now = new Date();
+        const formattedTime = now.toISOString().slice(0, 19).replace("T", " ");
+        updated[index].waktuKeluar = formattedTime;
+        // Hapus dari daftar Buku Tamu (akan terlihat di History)
+        const finalList = updated.filter((_, i) => i !== index);
+        setDataTamu(finalList);
+      } else if (newStatus === "Open" || newStatus === "Entry") {
+        // Jika status menjadi Open atau Entry, reset waktu keluar
+        updated[index].waktuKeluar = "";
+        setDataTamu(updated);
+      } else {
+        // Untuk status lainnya, hanya update status
+        setDataTamu(updated);
+      }
     } catch (err) {
       console.error("Update status tamu gagal:", err);
       alert(`Gagal mengubah status: ${err.message}`);
@@ -666,6 +678,7 @@ function BukuTamu() {
               <tr>
                 {[
                   "#",
+                  "Actions",
                   "Nama",
                   "Instansi",
                   "Keperluan",
@@ -679,7 +692,6 @@ function BukuTamu() {
                   "Status Tamu",
                   "Status",
                   "Keterangan",
-                  "Actions",
                 ].map((h) => (
                   <th
                     key={h}
@@ -706,63 +718,6 @@ function BukuTamu() {
                 pageItems.map((tamu, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="px-3 py-2">{firstItemIndex + index + 1}</td>
-                    <td
-                      className="px-3 py-2 font-medium cursor-pointer hover:text-blue-600"
-                      onClick={() => setSelectedTamu(tamu)}
-                    >
-                      {tamu.nama}
-                    </td>
-                    <td className="px-3 py-2">{tamu.instansi}</td>
-                    <td className="px-3 py-2">{tamu.keperluan}</td>
-                    <td className="px-3 py-2">{tamu.tujuan}</td>
-                    <td className="px-3 py-2">{tamu.divisi}</td>
-                    <td className="px-3 py-2">{tamu.jenisKartu || "-"}</td>
-                    <td className="px-3 py-2">{tamu.kategoriTamu || "-"}</td>
-                    <td className="px-3 py-2">
-                      {formatDateTime(tamu.waktuBerkunjung)}
-                    </td>
-                    <td className="px-3 py-2">
-                      {formatDateTime(tamu.waktuKeluar)}
-                    </td>
-                    <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
-                    <td className="px-3 py-2">
-                      <select
-                        value={tamu.statusTamu || ""}
-                        onChange={(e) =>
-                          updateStatusTamu(index, e.target.value)
-                        }
-                        className={`px-2 py-1 rounded-full text-xs border-0 ${
-                          tamu.statusTamu === "Open"
-                            ? "bg-green-100 text-green-800"
-                            : tamu.statusTamu === "Entry"
-                            ? "bg-blue-100 text-blue-800"
-                            : tamu.statusTamu === "Closed"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        <option value="">Pilih Status</option>
-                        <option value="Open">Open</option>
-                        <option value="Entry">Entry</option>
-                        <option value="Closed">Closed</option>
-                      </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          tamu.status === "Clear"
-                            ? "bg-green-100 text-green-800"
-                            : tamu.status === "Warning"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : tamu.status === "Attention"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {tamu.status || "-"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button
@@ -838,6 +793,63 @@ function BukuTamu() {
                         </button>
                       </div>
                     </td>
+                    <td
+                      className="px-3 py-2 font-medium cursor-pointer hover:text-blue-600"
+                      onClick={() => setSelectedTamu(tamu)}
+                    >
+                      {tamu.nama}
+                    </td>
+                    <td className="px-3 py-2">{tamu.instansi}</td>
+                    <td className="px-3 py-2">{tamu.keperluan}</td>
+                    <td className="px-3 py-2">{tamu.tujuan}</td>
+                    <td className="px-3 py-2">{tamu.divisi}</td>
+                    <td className="px-3 py-2">{tamu.jenisKartu || "-"}</td>
+                    <td className="px-3 py-2">{tamu.kategoriTamu || "-"}</td>
+                    <td className="px-3 py-2">
+                      {formatDateTime(tamu.waktuBerkunjung)}
+                    </td>
+                    <td className="px-3 py-2">
+                      {formatDateTime(tamu.waktuKeluar)}
+                    </td>
+                    <td className="px-3 py-2">{tamu.noIdTamu || "-"}</td>
+                    <td className="px-3 py-2">
+                      <select
+                        value={tamu.statusTamu || ""}
+                        onChange={(e) =>
+                          updateStatusTamu(index, e.target.value)
+                        }
+                        className={`px-2 py-1 rounded-full text-xs border-0 ${
+                          tamu.statusTamu === "Open"
+                            ? "bg-green-100 text-green-800"
+                            : tamu.statusTamu === "Entry"
+                            ? "bg-blue-100 text-blue-800"
+                            : tamu.statusTamu === "Closed"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        <option value="">Pilih Status</option>
+                        <option value="Open">Open</option>
+                        <option value="Entry">Entry</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          tamu.status === "Clear"
+                            ? "bg-green-100 text-green-800"
+                            : tamu.status === "Warning"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : tamu.status === "Attention"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {tamu.status || "-"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">{tamu.keterangan || "-"}</td>
                   </tr>
                 ))
               )}

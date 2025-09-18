@@ -8,12 +8,19 @@ export default defineConfig({
     port: 3004,
     strictPort: true,
     proxy: {
-      // Forward frontend requests to backend during development
+      // Forward /api requests that need /api prefix (jabatan, dashboard)
+      "/api/jabatan": {
+        target: "http://localhost:8004",
+        changeOrigin: true,
+      },
+      "/api/dashboard": {
+        target: "http://localhost:8004",
+        changeOrigin: true,
+      },
+      // Forward other /api requests without /api prefix
       "/api": {
         target: "http://localhost:8004",
         changeOrigin: true,
-        // If backend doesn't expect /api prefix, rewrite here
-        // Remove the following rewrite if your backend routes already start with /api
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
