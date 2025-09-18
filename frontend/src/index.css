@@ -79,6 +79,68 @@ textarea:hover {
   backdrop-filter: blur(4px);
 }
 
+/* Global UI polish */
+h1,
+h2 {
+  letter-spacing: -0.02em;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* Table zebra + hover */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead th {
+  background: linear-gradient(
+    180deg,
+    rgba(243, 244, 246, 0.7),
+    rgba(243, 244, 246, 0.4)
+  );
+  backdrop-filter: blur(2px);
+}
+
+tbody tr {
+  transition: background-color 180ms ease;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+tbody tr:hover {
+  background-color: rgba(59, 130, 246, 0.06);
+}
+
+tbody td,
+thead th {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+/* Inputs focus ring */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+/* Button hover elevation */
+button:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* Page enter helper */
+.page-enter {
+  animation: fadeIn 0.4s ease-out, scaleIn 0.35s ease-out;
+}
+
 @keyframes toastIn {
   0% {
     opacity: 0;

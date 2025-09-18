@@ -22,7 +22,7 @@ function WithWelcome() {
     <div className="min-h-dvh flex flex-col">
       <Navbar />
       <main className="flex-1">
-        <div className="w-full max-w-none px-6 lg:px-8 py-8">
+        <div className="w-full max-w-none px-6 lg:px-8 py-8 page-enter">
           <Outlet />
         </div>
       </main>
