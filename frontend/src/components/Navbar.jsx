@@ -8,6 +8,7 @@ function Navbar() {
   const [openMenu, setOpenMenu] = useState(null); // 'list' | 'report' | 'master' | 'user' | null
   const [notesCount, setNotesCount] = useState(0);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   function handleToggle(menu, event) {
     const buttonRect = event.currentTarget.getBoundingClientRect();
@@ -38,6 +39,7 @@ function Navbar() {
 
   function closeAll() {
     setOpenMenu(null);
+    setMobileOpen(false);
   }
 
   // Load notes count from localStorage
@@ -70,25 +72,25 @@ function Navbar() {
 
   return (
     <header
-      className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b"
+      className="sticky top-0 z-20 border-b bg-gradient-to-b from-white/70 to-white/40 backdrop-blur-xl supports-[backdrop-filter]:bg-white/40 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.2)]"
       onClick={closeAll}
     >
       <div
         className="w-full max-w-none px-6 lg:px-8 h-20 flex items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <Link to="/" className="inline-flex items-center gap-3">
+        <Link to="/" className="inline-flex items-center gap-3 group">
           {/* Mobile logo */}
           <img
             src="/image/Logo_PLN-removebg-preview.png"
             alt="Logo PLN"
-            className="block md:hidden h-10 w-auto object-contain"
+            className="block md:hidden h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
           {/* Desktop logo */}
           <img
             src="/image/logoplnes-removebg-preview.png"
             alt="Logo"
-            className="hidden md:block h-40 w-auto object-contain"
+            className="hidden md:block h-40 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
           />
           {/* Remove text label as requested */}
         </Link>
@@ -98,10 +100,10 @@ function Navbar() {
             to="/"
             end
             className={({ isActive }) =>
-              `px-3 py-2 rounded-md transition-all duration-200 ${
+              `px-3 py-2 rounded-xl transition-all duration-300 ${
                 isActive
-                  ? "bg-gray-900 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
               }`
             }
           >
@@ -113,10 +115,10 @@ function Navbar() {
               <NavLink
                 to="/buku-tamu"
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                  `px-3 py-2 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`
                 }
               >
@@ -125,10 +127,10 @@ function Navbar() {
               <NavLink
                 to="/history-tamu"
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                  `px-3 py-2 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`
                 }
               >
@@ -137,10 +139,10 @@ function Navbar() {
               <NavLink
                 to="/log-telepon"
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                  `px-3 py-2 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`
                 }
               >
@@ -149,10 +151,10 @@ function Navbar() {
               <NavLink
                 to="/notes"
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-md transition-all duration-200 ${
+                  `px-3 py-2 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`
                 }
               >
@@ -162,10 +164,10 @@ function Navbar() {
               <div className="relative group">
                 <button
                   onClick={(e) => handleToggle("list", e)}
-                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300 ${
                     openMenu === "list"
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`}
                 >
                   List
@@ -179,7 +181,7 @@ function Navbar() {
                 </button>
                 {openMenu === "list" ? (
                   <div
-                    className="fixed w-48 rounded-md border bg-white shadow-lg"
+                    className="fixed w-48 rounded-2xl p-[1px] bg-gradient-to-b from-sky-200 to-indigo-200 shadow-xl animate-[fadeIn_.2s_ease-out]"
                     style={{
                       zIndex: 9999,
                       top: dropdownPos.top,
@@ -187,20 +189,22 @@ function Navbar() {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Link
-                      to="/list?tab=tamu"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-md"
-                      onClick={closeAll}
-                    >
-                      Buku Telepon Tamu
-                    </Link>
-                    <Link
-                      to="/list?tab=internal"
-                      className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-md"
-                      onClick={closeAll}
-                    >
-                      Buku Telepon Internal
-                    </Link>
+                    <div className="rounded-2xl border bg-white/90 backdrop-blur-md">
+                      <Link
+                        to="/list?tab=tamu"
+                        className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-2xl transition-colors"
+                        onClick={closeAll}
+                      >
+                        Buku Telepon Tamu
+                      </Link>
+                      <Link
+                        to="/list?tab=internal"
+                        className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-b-2xl transition-colors"
+                        onClick={closeAll}
+                      >
+                        Buku Telepon Internal
+                      </Link>
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -208,10 +212,10 @@ function Navbar() {
               <div className="relative">
                 <button
                   onClick={(e) => handleToggle("report", e)}
-                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300 ${
                     openMenu === "report"
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`}
                 >
                   Report
@@ -225,7 +229,7 @@ function Navbar() {
                 </button>
                 {openMenu === "report" ? (
                   <div
-                    className="fixed w-64 rounded-md border bg-white shadow-lg"
+                    className="fixed w-64 rounded-2xl p-[1px] bg-gradient-to-b from-sky-200 to-indigo-200 shadow-xl animate-[fadeIn_.2s_ease-out]"
                     style={{
                       zIndex: 9999,
                       top: dropdownPos.top,
@@ -233,13 +237,15 @@ function Navbar() {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Link
-                      to="/reports"
-                      className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-md"
-                      onClick={closeAll}
-                    >
-                      Report Tamu Per Bulan
-                    </Link>
+                    <div className="rounded-2xl border bg-white/90 backdrop-blur-md">
+                      <Link
+                        to="/reports"
+                        className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-2xl transition-colors"
+                        onClick={closeAll}
+                      >
+                        Report Tamu Per Bulan
+                      </Link>
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -247,10 +253,10 @@ function Navbar() {
               <div className="relative">
                 <button
                   onClick={(e) => handleToggle("master", e)}
-                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200 ${
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300 ${
                     openMenu === "master"
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`}
                 >
                   Data Master
@@ -264,7 +270,7 @@ function Navbar() {
                 </button>
                 {openMenu === "master" ? (
                   <div
-                    className="fixed w-56 rounded-md border bg-white shadow-lg"
+                    className="fixed w-56 rounded-2xl p-[1px] bg-gradient-to-b from-sky-200 to-indigo-200 shadow-xl animate-[fadeIn_.2s_ease-out]"
                     style={{
                       zIndex: 9999,
                       top: dropdownPos.top,
@@ -272,13 +278,15 @@ function Navbar() {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Link
-                      to="/master/pejabat"
-                      className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-md"
-                      onClick={closeAll}
-                    >
-                      Daftar Pejabat
-                    </Link>
+                    <div className="rounded-2xl border bg-white/90 backdrop-blur-md">
+                      <Link
+                        to="/master/pejabat"
+                        className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-2xl transition-colors"
+                        onClick={closeAll}
+                      >
+                        Daftar Pejabat
+                      </Link>
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -286,15 +294,41 @@ function Navbar() {
           ) : null}
         </nav>
 
-        <div className="flex items-center gap-3 justify-end">
+        <div className="flex items-center gap-3 justify-end ml-auto">
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white/60 backdrop-blur hover:bg-white transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMobileOpen((v) => !v);
+            }}
+            aria-label="Toggle menu"
+          >
+            <span
+              className={`block h-0.5 w-5 bg-gray-900 transition-all ${
+                mobileOpen ? "translate-y-1 rotate-45" : "-translate-y-1"
+              }`}
+            ></span>
+            <span
+              className={`block h-0.5 w-5 bg-gray-900 transition-opacity ${
+                mobileOpen ? "opacity-0" : "opacity-100"
+              }`}
+            ></span>
+            <span
+              className={`block h-0.5 w-5 bg-gray-900 transition-all ${
+                mobileOpen ? "-translate-y-1 -rotate-45" : "translate-y-1"
+              }`}
+            ></span>
+          </button>
+
           {!user ? (
             <NavLink
               to="/login"
               className={({ isActive }) =>
-                `inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                `hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ${
                   isActive
                     ? "bg-gray-800 text-white"
-                    : "bg-gray-900 text-white hover:bg-gray-800"
+                    : "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
                 }`
               }
             >
@@ -304,7 +338,7 @@ function Navbar() {
             <div className="relative">
               <button
                 onClick={() => toggle("user")}
-                className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all duration-200"
+                className="hidden md:inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 shadow-sm transition-all duration-300"
               >
                 {(user.username || "ADMIN").toUpperCase()}
                 <svg
@@ -316,7 +350,7 @@ function Navbar() {
                 </svg>
               </button>
               {openMenu === "user" ? (
-                <div className="absolute right-0 mt-2 w-44 rounded-md border bg-white shadow-md">
+                <div className="absolute right-0 mt-2 w-44 rounded-xl border bg-white/90 backdrop-blur shadow-md animate-[fadeIn_.2s_ease-out]">
                   <Link
                     to="/profile"
                     className="block px-3 py-2 text-sm hover:bg-gray-50"
@@ -346,6 +380,138 @@ function Navbar() {
                 </div>
               ) : null}
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile panel */}
+      <div
+        className={`md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ${
+          mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 pb-6 pt-2 space-y-2 bg-white/80 backdrop-blur border-t">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              `block px-3 py-2 rounded-md ${
+                isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+              }`
+            }
+            onClick={closeAll}
+          >
+            Home
+          </NavLink>
+          {user ? (
+            <>
+              <NavLink
+                to="/buku-tamu"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md ${
+                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                  }`
+                }
+                onClick={closeAll}
+              >
+                Buku Tamu
+              </NavLink>
+              <NavLink
+                to="/history-tamu"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md ${
+                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                  }`
+                }
+                onClick={closeAll}
+              >
+                History Tamu
+              </NavLink>
+              <NavLink
+                to="/log-telepon"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md ${
+                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                  }`
+                }
+                onClick={closeAll}
+              >
+                Log Telepon
+              </NavLink>
+              <NavLink
+                to="/notes"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md ${
+                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                  }`
+                }
+                onClick={closeAll}
+              >
+                Notes ({notesCount})
+              </NavLink>
+              <div className="pt-2">
+                <div className="text-xs text-gray-500 px-3 pb-1">Menu Lain</div>
+                <Link
+                  to="/list?tab=tamu"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                  onClick={closeAll}
+                >
+                  Buku Telepon Tamu
+                </Link>
+                <Link
+                  to="/list?tab=internal"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                  onClick={closeAll}
+                >
+                  Buku Telepon Internal
+                </Link>
+                <Link
+                  to="/reports"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                  onClick={closeAll}
+                >
+                  Report Tamu Per Bulan
+                </Link>
+                <Link
+                  to="/master/pejabat"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                  onClick={closeAll}
+                >
+                  Daftar Pejabat
+                </Link>
+              </div>
+              {user ? (
+                <button
+                  onClick={() => {
+                    closeAll();
+                    logout();
+                    navigate("/welcome", {
+                      state: { type: "logout", next: "/" },
+                    });
+                  }}
+                  className="mt-2 block w-full text-left px-3 py-2 rounded-md bg-gray-900 text-white"
+                >
+                  Keluar
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="mt-2 block w-full text-left px-3 py-2 rounded-md bg-gray-900 text-white"
+                  onClick={closeAll}
+                >
+                  Login
+                </Link>
+              )}
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="block px-3 py-2 rounded-md bg-gray-900 text-white"
+              onClick={closeAll}
+            >
+              Login
+            </Link>
           )}
         </div>
       </div>
