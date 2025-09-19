@@ -10,11 +10,34 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3004")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
-const corsOptions = allowedOrigins.length ? { origin: allowedOrigins } : {};
+
+// Flexible CORS: allow configured origins plus common private LAN ranges
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    try {
+      const normalized = origin.replace(/\/$/, "");
+      const isListed = allowedOrigins.includes(normalized);
+      const isLocalhost = /^(http:\/\/)?(localhost|127\.0\.0\.1)(:\\d+)?$/.test(
+        normalized
+      );
+      const isPrivateLan =
+        /^(http:\/\/)?(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(
+          normalized
+        );
+      if (isListed || isLocalhost || isPrivateLan) return callback(null, true);
+    } catch {}
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: false,
+  optionsSuccessStatus: 200,
+};
 
 app.use(cors(corsOptions));
 // Increase payload limits to handle base64 images from frontend
 app.use(express.json({ limit: "20mb" }));
+// Handle preflight for all routes
+app.options("*", cors(corsOptions));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 let dbPool;
