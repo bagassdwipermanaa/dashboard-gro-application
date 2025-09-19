@@ -47,6 +47,40 @@ body {
   background-blend-mode: normal, screen, screen, normal, normal, normal;
 }
 
+/* Dark theme overrides */
+.dark body {
+  background: #0f172a;
+}
+.dark .card,
+.dark .bg-white {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: #e5e7eb;
+}
+.dark .border,
+.dark table th,
+.dark table td {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+.dark .text-gray-600 {
+  color: #94a3b8;
+}
+.dark .text-gray-500 {
+  color: #94a3b8;
+}
+.dark .text-gray-900 {
+  color: #e5e7eb;
+}
+.dark input,
+.dark select,
+.dark textarea {
+  background: #0b1220;
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+.dark a {
+  color: #93c5fd;
+}
+
 /* Smooth hover transitions for interactive elements */
 a,
 button {

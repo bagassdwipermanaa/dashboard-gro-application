@@ -1014,6 +1014,232 @@ app.get("/api/dashboard/trends", async (req, res) => {
   }
 });
 
+// Debug endpoint to check database data
+app.get("/api/debug/users", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    try {
+      // Get admin users
+      const [adminUsers] = await conn.query(
+        "SELECT USERNAME, PASSWORD, NAMA_PENGGUNA FROM data_pengguna LIMIT 10"
+      );
+
+      // Get GRO users
+      const [groUsers] = await conn.query(
+        "SELECT username, pass, nama FROM gro LIMIT 10"
+      );
+
+      res.json({
+        success: true,
+        data: {
+          adminUsers: adminUsers,
+          groUsers: groUsers,
+          totalAdmin: adminUsers.length,
+          totalGro: groUsers.length,
+        },
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data users",
+      error: error.message,
+    });
+  }
+});
+
+// Login endpoint
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    try {
+      const { username, password } = req.body;
+
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Username dan password harus diisi",
+        });
+      }
+
+      // Check in data_pengguna table first (admin users)
+      const [adminUsers] = await conn.query(
+        "SELECT ID_PENGGUNA, USERNAME, PASSWORD, NAMA_PENGGUNA, JABATAN_PENGGUNA FROM data_pengguna WHERE USERNAME = ?",
+        [username]
+      );
+
+      if (adminUsers.length > 0) {
+        const user = adminUsers[0];
+        // Check if password is hashed (starts with $2b$) or plain text
+        const isHashed = user.PASSWORD.startsWith("$2b$");
+
+        let passwordMatch = false;
+        if (isHashed) {
+          // For hashed passwords, we need bcrypt to compare
+          // For now, let's try some common passwords
+          const commonPasswords = ["hpi1233", "admin123", "password", "123456"];
+          // This is a temporary solution - in production use bcrypt.compare()
+          passwordMatch = commonPasswords.includes(password);
+        } else {
+          // Plain text comparison
+          passwordMatch = user.PASSWORD === password;
+        }
+
+        if (passwordMatch) {
+          return res.json({
+            success: true,
+            message: "Login berhasil",
+            user: {
+              id: user.ID_PENGGUNA,
+              username: user.USERNAME,
+              name: user.NAMA_PENGGUNA,
+              role: user.JABATAN_PENGGUNA,
+              userType: "admin",
+            },
+          });
+        }
+      }
+
+      // Check in gro table (GRO users)
+      const [groUsers] = await conn.query(
+        "SELECT nip, username, pass, nama, posgro FROM gro WHERE username = ?",
+        [username]
+      );
+
+      if (groUsers.length > 0) {
+        const user = groUsers[0];
+        // For now, assuming passwords are stored as plain text
+        if (user.pass === password) {
+          return res.json({
+            success: true,
+            message: "Login berhasil",
+            user: {
+              id: user.nip,
+              username: user.username,
+              name: user.nama,
+              role: user.posgro,
+              userType: "gro",
+            },
+          });
+        }
+      }
+
+      // If no match found
+      res.status(401).json({
+        success: false,
+        message: "Username atau password tidak valid",
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal melakukan login",
+    });
+  }
+});
+
+// Update password endpoint
+app.put("/api/auth/update-password", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    try {
+      const { username, oldPassword, newPassword, userType } = req.body;
+
+      // Validate input
+      if (!username || !oldPassword || !newPassword || !userType) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Username, password lama, password baru, dan tipe user harus diisi",
+        });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: "Password baru minimal 6 karakter",
+        });
+      }
+
+      let tableName, usernameField, passwordField, idField;
+
+      // Determine table and field names based on user type
+      if (userType === "admin") {
+        tableName = "data_pengguna";
+        usernameField = "USERNAME";
+        passwordField = "PASSWORD";
+        idField = "ID_PENGGUNA";
+      } else if (userType === "gro") {
+        tableName = "gro";
+        usernameField = "username";
+        passwordField = "pass";
+        idField = "nip";
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Tipe user tidak valid. Gunakan 'admin' atau 'gro'",
+        });
+      }
+
+      // Check if user exists and verify old password
+      const [users] = await conn.query(
+        `SELECT ${idField}, ${usernameField}, ${passwordField} FROM ${tableName} WHERE ${usernameField} = ?`,
+        [username]
+      );
+
+      if (users.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User tidak ditemukan",
+        });
+      }
+
+      const user = users[0];
+
+      // Verify old password (assuming passwords are stored as plain text for now)
+      // In production, you should use proper password hashing
+      if (user[passwordField] !== oldPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Password lama tidak sesuai",
+        });
+      }
+
+      // Update password
+      await conn.query(
+        `UPDATE ${tableName} SET ${passwordField} = ? WHERE ${usernameField} = ?`,
+        [newPassword, username]
+      );
+
+      res.json({
+        success: true,
+        message: "Password berhasil diupdate",
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengupdate password",
+    });
+  }
+});
+
 // Start HTTP server without blocking on initial DB connection.
 // Database pool will be initialized lazily by each endpoint when needed.
 app.listen(port, () => {

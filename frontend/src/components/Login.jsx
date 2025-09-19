@@ -1,45 +1,57 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-// no toast, we route to /welcome for animation
-
-// Dummy users untuk demo login dengan username
-const dummyUsers = [
-  { username: "admin", password: "admin123" },
-  { username: "johndoe", password: "password" },
-  { username: "sarah", password: "qwerty" },
-];
+import { useToast } from "./Toast";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { show: showToast } = useToast();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
-    if (!username || !password) {
-      setError("Username dan kata sandi wajib diisi");
-      return;
+    try {
+      if (!username || !password) {
+        setError("Username dan kata sandi wajib diisi");
+        return;
+      }
+
+      const response = await fetch("http://localhost:8004/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Set auth state with user data from database
+        login(data.user);
+        showToast("Login berhasil!", "success");
+        // arahkan ke halaman welcome untuk animasi penuh
+        navigate("/welcome", { state: { type: "login", next: "/" } });
+      } else {
+        setError(data.message || "Username atau kata sandi tidak valid");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      setError("Terjadi kesalahan saat login");
+    } finally {
+      setIsLoading(false);
     }
-
-    const matchedUser = dummyUsers.find(
-      (u) => u.username === username && u.password === password
-    );
-
-    if (!matchedUser) {
-      setError("Username atau kata sandi tidak valid");
-      return;
-    }
-
-    // Set auth state, toast, dan redirect
-    login({ username: matchedUser.username });
-    // arahkan ke halaman welcome untuk animasi penuh
-    navigate("/welcome", { state: { type: "login", next: "/" } });
   }
 
   return (
@@ -141,9 +153,10 @@ function Login() {
           ) : null}
           <button
             type="submit"
-            className="w-full rounded-md bg-gray-900 text-white py-2.5 hover:bg-gray-800 shadow-sm"
+            disabled={isLoading}
+            className="w-full rounded-md bg-gray-900 text-white py-2.5 hover:bg-gray-800 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Masuk
+            {isLoading ? "Memproses..." : "Masuk"}
           </button>
         </form>
       </div>

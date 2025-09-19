@@ -9,10 +9,39 @@ function Navbar() {
   const [notesCount, setNotesCount] = useState(0);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Admin diidentifikasi dari asal tabel "data_pengguna" (mendukung banyak nama field)
+  const sourceTable = (
+    user?.table ??
+    user?.source ??
+    user?.asal_tabel ??
+    user?.asal ??
+    user?.tableName ??
+    user?.table_name ??
+    user?.from ??
+    ""
+  )
+    .toString()
+    .toLowerCase();
+  const isAdmin =
+    (user?.userType ?? "").toString().toLowerCase() === "admin" ||
+    sourceTable.includes("data_pengguna");
+  // Debug ringan (aktif bila window.__DEV__ = true)
+  if (typeof window !== "undefined" && window.__DEV__ === true) {
+    console.debug(
+      "Auth user:",
+      user,
+      "sourceTable:",
+      sourceTable,
+      "isAdmin:",
+      isAdmin
+    );
+  }
 
   function handleToggle(menu, event) {
     const buttonRect = event.currentTarget.getBoundingClientRect();
-    const dropdownWidthPx = 192; // Tailwind w-48
+    // Set width per menu: list=w-48(192), report=w-64(256), master=w-56(224)
+    const dropdownWidthPx =
+      menu === "report" ? 256 : menu === "master" ? 224 : 192;
     const computedLeft = Math.max(
       8,
       Math.min(
@@ -279,9 +308,36 @@ function Navbar() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="rounded-2xl border bg-white/90 backdrop-blur-md">
+                      {isAdmin ? (
+                        <>
+                          <Link
+                            to="/master/aktivitas-pengguna"
+                            className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                            onClick={closeAll}
+                          >
+                            Data Aktivitas Pengguna
+                          </Link>
+                          <Link
+                            to="/master/pengguna-aplikasi"
+                            className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                            onClick={closeAll}
+                          >
+                            Data Pengguna Aplikasi
+                          </Link>
+                          <Link
+                            to="/master/gro"
+                            className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                            onClick={closeAll}
+                          >
+                            Data GRO
+                          </Link>
+                        </>
+                      ) : null}
                       <Link
                         to="/master/pejabat"
-                        className="block px-4 py-2 text-sm hover:bg-gray-50 rounded-2xl transition-colors"
+                        className={`block px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                          isAdmin ? "rounded-b-2xl" : "rounded-2xl"
+                        }`}
                         onClick={closeAll}
                       >
                         Daftar Pejabat
@@ -364,6 +420,13 @@ function Navbar() {
                     onClick={closeAll}
                   >
                     Pengaturan
+                  </Link>
+                  <Link
+                    to="/change-password"
+                    className="block px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={closeAll}
+                  >
+                    Rubah Password
                   </Link>
                   <button
                     onClick={() => {
@@ -452,6 +515,31 @@ function Navbar() {
               </NavLink>
               <div className="pt-2">
                 <div className="text-xs text-gray-500 px-3 pb-1">Menu Lain</div>
+                {isAdmin ? (
+                  <>
+                    <Link
+                      to="/master/aktivitas-pengguna"
+                      className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                      onClick={closeAll}
+                    >
+                      Data Aktivitas Pengguna
+                    </Link>
+                    <Link
+                      to="/master/pengguna-aplikasi"
+                      className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                      onClick={closeAll}
+                    >
+                      Data Pengguna Aplikasi
+                    </Link>
+                    <Link
+                      to="/master/gro"
+                      className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                      onClick={closeAll}
+                    >
+                      Data GRO
+                    </Link>
+                  </>
+                ) : null}
                 <Link
                   to="/list?tab=tamu"
                   className="block px-3 py-2 rounded-md hover:bg-gray-100"
