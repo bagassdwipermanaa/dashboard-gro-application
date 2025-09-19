@@ -49,21 +49,21 @@ function ChangePassword() {
       const userType =
         user.userType || (user.username === "admin" ? "admin" : "gro");
 
-      const response = await fetch(
-        "http://localhost:8004/api/auth/update-password",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: user.username,
-            oldPassword: formData.oldPassword,
-            newPassword: formData.newPassword,
-            userType: userType,
-          }),
-        }
-      );
+      const API_URL =
+        import.meta.env.VITE_API_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8004`;
+      const response = await fetch(`${API_URL}/api/auth/update-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: user.username,
+          oldPassword: formData.oldPassword,
+          newPassword: formData.newPassword,
+          userType: userType,
+        }),
+      });
 
       const data = await response.json();
 

@@ -24,7 +24,10 @@ function Login() {
         return;
       }
 
-      const response = await fetch("http://localhost:8004/api/auth/login", {
+      const API_URL =
+        import.meta.env.VITE_API_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8004`;
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
