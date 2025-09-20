@@ -37,7 +37,6 @@ app.use(cors(corsOptions));
 // Increase payload limits to handle base64 images from frontend
 app.use(express.json({ limit: "20mb" }));
 // Handle preflight for all routes
-app.options("*", cors(corsOptions));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 let dbPool;
@@ -686,12 +685,11 @@ app.patch("/tamu/:idvisit/status", async (req, res) => {
       let sql, params;
 
       if (statustamu === "Closed") {
-        // Jika status diubah menjadi Closed, update waktu keluar dengan waktu saat ini
-        const now = new Date();
-        const formattedTime = now.toISOString().slice(0, 19).replace("T", " ");
+        // Jika status diubah menjadi Closed, set jamkeluar ke WIB tanpa bergantung setting time_zone server
+        // Gunakan waktu UTC lalu konversi ke +07:00 (WIB)
         sql =
-          "UPDATE tabletamu SET statustamu = ?, jamkeluar = ? WHERE idvisit = ?";
-        params = [statustamu, formattedTime, idvisit];
+          "UPDATE tabletamu SET statustamu = ?, jamkeluar = CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+07:00') WHERE idvisit = ?";
+        params = [statustamu, idvisit];
       } else if (statustamu === "Open" || statustamu === "Entry") {
         // Jika status diubah menjadi Open atau Entry, reset waktu keluar menjadi NULL
         sql =
@@ -1168,6 +1166,141 @@ app.post("/api/auth/login", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Gagal melakukan login",
+    });
+  }
+});
+
+// ===== AKTIVITAS PENGGUNA =====
+// GET - List aktivitas pengguna with optional search and pagination
+app.get("/api/aktivitas-pengguna", async (req, res) => {
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+    const pageSize = Math.min(
+      Math.max(parseInt(req.query.pageSize || "20", 10), 1),
+      200
+    );
+    const search = (req.query.search || "").toString().trim();
+
+    const offset = (page - 1) * pageSize;
+
+    try {
+      const whereClauses = [];
+      const whereParams = [];
+      if (search) {
+        whereClauses.push(
+          "(MODEL LIKE ? OR USERNAME LIKE ? OR KETERANGAN LIKE ?)"
+        );
+        const like = `%${search}%`;
+        whereParams.push(like, like, like);
+      }
+      const whereSql = whereClauses.length
+        ? `WHERE ${whereClauses.join(" AND ")}`
+        : "";
+
+      const [rows] = await conn.query(
+        `SELECT ID_AKTIVITAS, MODEL, USERNAME, KETERANGAN 
+         FROM aktivitas_pengguna 
+         ${whereSql}
+         ORDER BY ID_AKTIVITAS DESC
+         LIMIT ? OFFSET ?`,
+        [...whereParams, pageSize, offset]
+      );
+
+      const [countRows] = await conn.query(
+        `SELECT COUNT(*) AS total FROM aktivitas_pengguna ${whereSql}`,
+        whereParams
+      );
+
+      const total = countRows?.[0]?.total ?? 0;
+      res.json({
+        success: true,
+        data: rows,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / pageSize)),
+        },
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error fetching aktivitas_pengguna:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data aktivitas pengguna",
+    });
+  }
+});
+
+// Mirror route without /api prefix to match Vite proxy rewrite
+app.get("/aktivitas-pengguna", async (req, res) => {
+  // Delegate to the same handler by calling next middleware logic is not trivial here,
+  // so simply duplicate minimal logic to parse and forward params.
+  try {
+    if (!dbPool) await initializeDatabasePool();
+    const conn = await dbPool.getConnection();
+
+    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+    const pageSize = Math.min(
+      Math.max(parseInt(req.query.pageSize || "20", 10), 1),
+      200
+    );
+    const search = (req.query.search || "").toString().trim();
+
+    const offset = (page - 1) * pageSize;
+
+    try {
+      const whereClauses = [];
+      const whereParams = [];
+      if (search) {
+        whereClauses.push(
+          "(MODEL LIKE ? OR USERNAME LIKE ? OR KETERANGAN LIKE ?)"
+        );
+        const like = `%${search}%`;
+        whereParams.push(like, like, like);
+      }
+      const whereSql = whereClauses.length
+        ? `WHERE ${whereClauses.join(" AND ")}`
+        : "";
+
+      const [rows] = await conn.query(
+        `SELECT ID_AKTIVITAS, MODEL, USERNAME, KETERANGAN 
+         FROM aktivitas_pengguna 
+         ${whereSql}
+         ORDER BY ID_AKTIVITAS DESC
+         LIMIT ? OFFSET ?`,
+        [...whereParams, pageSize, offset]
+      );
+
+      const [countRows] = await conn.query(
+        `SELECT COUNT(*) AS total FROM aktivitas_pengguna ${whereSql}`,
+        whereParams
+      );
+
+      const total = countRows?.[0]?.total ?? 0;
+      res.json({
+        success: true,
+        data: rows,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / pageSize)),
+        },
+      });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error fetching aktivitas_pengguna (no /api):", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data aktivitas pengguna",
     });
   }
 });
