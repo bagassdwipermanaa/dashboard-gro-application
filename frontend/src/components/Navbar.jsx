@@ -125,22 +125,21 @@ function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-2 text-sm flex-1 justify-center overflow-x-auto no-scrollbar whitespace-nowrap">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `px-3 py-2 rounded-xl transition-all duration-300 ${
-                isActive
-                  ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
-              }`
-            }
-          >
-            Home
-          </NavLink>
-
           {user ? (
             <>
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-xl transition-all duration-300 ${
+                    isActive
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
+                  }`
+                }
+              >
+                Home
+              </NavLink>
               <NavLink
                 to="/buku-tamu"
                 className={({ isActive }) =>
@@ -455,20 +454,20 @@ function Navbar() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 pb-6 pt-2 space-y-2 bg-white/80 backdrop-blur border-t">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md ${
-                isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
-              }`
-            }
-            onClick={closeAll}
-          >
-            Home
-          </NavLink>
           {user ? (
             <>
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md ${
+                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                  }`
+                }
+                onClick={closeAll}
+              >
+                Home
+              </NavLink>
               <NavLink
                 to="/buku-tamu"
                 className={({ isActive }) =>

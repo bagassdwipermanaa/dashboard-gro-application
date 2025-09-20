@@ -367,45 +367,398 @@ function Home() {
       <Hero />
 
       {!user ? (
-        <FadeIn>
-          <div className="mt-8">
-            <div className="mx-auto max-w-xl card p-6 hover:shadow-lg transition-all duration-300 hover:scale-105">
-              <div className="flex items-start gap-4">
-                <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-3 text-white">
+        <div className="mt-8 space-y-12">
+          {/* Stats Overview */}
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Fitur Unggulan Dashboard GRO
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Solusi lengkap untuk meningkatkan efisiensi operasional GRO
+                dengan teknologi terdepan
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <SlideUp delay={0.1}>
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
+                    className="w-8 h-8 text-white"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
-                    className="h-6 w-6"
+                    viewBox="0 0 24 24"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M12 11c2.21 0 4-1.79 4-4S14.21 3 12 3 8 4.79 8 7s1.79 4 4 4zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5z"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                     />
                   </svg>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">
-                    Selamat datang di Dashboard GRO
-                  </h3>
-                  <p className="mt-1 text-gray-600 text-sm">
-                    Silakan login untuk melihat data dashboard lengkap dengan
-                    statistik real-time.
-                  </p>
-                  <a
-                    href="/login"
-                    className="mt-4 inline-flex items-center justify-center rounded-md bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">1000+</h3>
+                <p className="text-gray-600">Tamu Terdaftar</p>
+              </div>
+            </SlideUp>
+
+            <SlideUp delay={0.2}>
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Login sekarang
-                  </a>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">500+</h3>
+                <p className="text-gray-600">Log Telepon</p>
+              </div>
+            </SlideUp>
+
+            <SlideUp delay={0.3}>
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">50+</h3>
+                <p className="text-gray-600">Laporan Generated</p>
+              </div>
+            </SlideUp>
+          </div>
+
+          {/* Feature Showcase - Horizontal Cards */}
+          <div className="space-y-8">
+            <SlideUp delay={0.1}>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-100">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="flex-shrink-0">
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <svg
+                        className="w-12 h-12 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-center lg:text-left">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      Manajemen Tamu Terintegrasi
+                    </h3>
+                    <p className="text-gray-600 text-lg mb-4">
+                      Kelola data tamu, history kunjungan, dan status real-time
+                      dengan sistem yang mudah digunakan
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        Buku Tamu Digital
+                      </span>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        History Lengkap
+                      </span>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        Status Real-time
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SlideUp>
+
+            <SlideUp delay={0.2}>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-8 border border-green-100">
+                <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
+                  <div className="flex-shrink-0">
+                    <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <svg
+                        className="w-12 h-12 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-center lg:text-left">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      Sistem Log Telepon Cerdas
+                    </h3>
+                    <p className="text-gray-600 text-lg mb-4">
+                      Catat dan kelola semua aktivitas telepon dengan sistem
+                      yang terintegrasi dan mudah diakses
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        Log Masuk/Keluar
+                      </span>
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        Buku Telepon
+                      </span>
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        Analisis Data
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SlideUp>
+
+            <SlideUp delay={0.3}>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-100">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="flex-shrink-0">
+                    <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <svg
+                        className="w-12 h-12 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-center lg:text-left">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      Laporan & Analisis Komprehensif
+                    </h3>
+                    <p className="text-gray-600 text-lg mb-4">
+                      Generate laporan detail, analisis tren, dan insights untuk
+                      pengambilan keputusan yang lebih baik
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                      <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                        Laporan Harian
+                      </span>
+                      <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                        Analisis Tren
+                      </span>
+                      <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                        Export Data
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SlideUp>
+          </div>
+
+          {/* Benefits Section */}
+          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-8 border border-gray-200">
+            <SlideUp delay={0.4}>
+              <div className="text-center mb-12">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  Mengapa Memilih Dashboard GRO?
+                </h3>
+                <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                  Platform yang dirancang khusus untuk memenuhi kebutuhan
+                  operasional GRO dengan fitur-fitur canggih
+                </p>
+              </div>
+            </SlideUp>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <SlideUp delay={0.5}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    Real-time
+                  </h4>
+                  <p className="text-gray-600 text-sm">
+                    Data update secara real-time untuk monitoring yang akurat
+                  </p>
+                </div>
+              </SlideUp>
+
+              <SlideUp delay={0.6}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    Terintegrasi
+                  </h4>
+                  <p className="text-gray-600 text-sm">
+                    Semua fitur terintegrasi dalam satu platform
+                  </p>
+                </div>
+              </SlideUp>
+
+              <SlideUp delay={0.7}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    Aman
+                  </h4>
+                  <p className="text-gray-600 text-sm">
+                    Keamanan data terjamin dengan enkripsi tingkat tinggi
+                  </p>
+                </div>
+              </SlideUp>
+
+              <SlideUp delay={0.8}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    User Friendly
+                  </h4>
+                  <p className="text-gray-600 text-sm">
+                    Interface yang intuitif dan mudah digunakan
+                  </p>
+                </div>
+              </SlideUp>
+            </div>
+          </div>
+
+          {/* CTA Section */}
+          <FadeIn delay={0.9}>
+            <div className="text-center">
+              <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-12 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="relative z-10">
+                  <h3 className="text-4xl font-bold mb-6">Siap Memulai?</h3>
+                  <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                    Bergabunglah dengan tim GRO yang sudah menggunakan platform
+                    ini untuk meningkatkan efisiensi kerja
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a
+                      href="/login"
+                      className="inline-flex items-center justify-center bg-white text-blue-600 font-bold px-8 py-4 rounded-2xl hover:bg-gray-50 transition-all duration-300 hover:scale-105 shadow-xl text-lg"
+                    >
+                      <svg
+                        className="w-6 h-6 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      Login ke Dashboard
+                    </a>
+                    <button className="inline-flex items-center justify-center border-2 border-white text-white font-bold px-8 py-4 rounded-2xl hover:bg-white hover:text-blue-600 transition-all duration-300 hover:scale-105 text-lg">
+                      <svg
+                        className="w-6 h-6 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      Pelajari Lebih Lanjut
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </FadeIn>
+          </FadeIn>
+        </div>
       ) : (
         <div className="mt-8 space-y-8">
           {/* Header with real-time clock */}
