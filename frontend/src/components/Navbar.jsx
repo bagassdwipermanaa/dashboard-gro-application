@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [openMenu, setOpenMenu] = useState(null); // 'list' | 'report' | 'master' | 'user' | null
+  const [openMenu, setOpenMenu] = useState(null); // 'telepon' | 'report' | 'master' | 'user' | null
   const [notesCount, setNotesCount] = useState(0);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -39,7 +39,7 @@ function Navbar() {
 
   function handleToggle(menu, event) {
     const buttonRect = event.currentTarget.getBoundingClientRect();
-    // Set width per menu: list=w-48(192), report=w-64(256), master=w-56(224)
+    // Set width per menu: telepon=w-48(192), report=w-64(256), master=w-56(224)
     const dropdownWidthPx =
       menu === "report" ? 256 : menu === "master" ? 224 : 192;
     const computedLeft = Math.max(
@@ -165,18 +165,6 @@ function Navbar() {
                 History Tamu
               </NavLink>
               <NavLink
-                to="/log-telepon"
-                className={({ isActive }) =>
-                  `px-3 py-2 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
-                  }`
-                }
-              >
-                Log Telepon
-              </NavLink>
-              <NavLink
                 to="/notes"
                 className={({ isActive }) =>
                   `px-3 py-2 rounded-xl transition-all duration-300 ${
@@ -188,17 +176,29 @@ function Navbar() {
               >
                 Notes ({notesCount})
               </NavLink>
+              <NavLink
+                to="/document"
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-xl transition-all duration-300 ${
+                    isActive
+                      ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
+                  }`
+                }
+              >
+                Document
+              </NavLink>
 
               <div className="relative group">
                 <button
-                  onClick={(e) => handleToggle("list", e)}
+                  onClick={(e) => handleToggle("telepon", e)}
                   className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300 ${
-                    openMenu === "list"
+                    openMenu === "telepon"
                       ? "text-white shadow-md bg-gradient-to-r from-sky-600 to-indigo-600"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-sky-500/10 hover:to-indigo-500/10 hover:shadow-sm"
                   }`}
                 >
-                  List
+                  Telepon
                   <svg
                     className="h-4 w-4"
                     viewBox="0 0 20 20"
@@ -207,7 +207,7 @@ function Navbar() {
                     <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" />
                   </svg>
                 </button>
-                {openMenu === "list" ? (
+                {openMenu === "telepon" ? (
                   <div
                     className="fixed w-48 rounded-2xl p-[1px] bg-gradient-to-b from-sky-200 to-indigo-200 shadow-xl animate-[fadeIn_.2s_ease-out]"
                     style={{
@@ -219,8 +219,15 @@ function Navbar() {
                   >
                     <div className="rounded-2xl border bg-white/90 backdrop-blur-md">
                       <Link
-                        to="/list?tab=tamu"
+                        to="/log-telepon"
                         className="block px-3 py-2 text-sm hover:bg-gray-50 rounded-t-2xl transition-colors"
+                        onClick={closeAll}
+                      >
+                        Log Telepon
+                      </Link>
+                      <Link
+                        to="/list?tab=tamu"
+                        className="block px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
                         onClick={closeAll}
                       >
                         Buku Telepon Tamu
@@ -491,17 +498,6 @@ function Navbar() {
                 History Tamu
               </NavLink>
               <NavLink
-                to="/log-telepon"
-                className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md ${
-                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
-                  }`
-                }
-                onClick={closeAll}
-              >
-                Log Telepon
-              </NavLink>
-              <NavLink
                 to="/notes"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md ${
@@ -511,6 +507,17 @@ function Navbar() {
                 onClick={closeAll}
               >
                 Notes ({notesCount})
+              </NavLink>
+              <NavLink
+                to="/document"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md ${
+                    isActive ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                  }`
+                }
+                onClick={closeAll}
+              >
+                Document
               </NavLink>
               <div className="pt-2">
                 <div className="text-xs text-gray-500 px-3 pb-1">Menu Lain</div>
@@ -539,6 +546,13 @@ function Navbar() {
                     </Link>
                   </>
                 ) : null}
+                <Link
+                  to="/log-telepon"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-100"
+                  onClick={closeAll}
+                >
+                  Log Telepon
+                </Link>
                 <Link
                   to="/list?tab=tamu"
                   className="block px-3 py-2 rounded-md hover:bg-gray-100"
