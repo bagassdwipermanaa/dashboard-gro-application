@@ -148,6 +148,32 @@ function Notes() {
     setDeleteModal({ isOpen: false, note: null, index: null });
   };
 
+  const handleStatusToggle = async (note, index) => {
+    try {
+      const id = note?.idnotes || note?.id;
+      if (!id) throw new Error("ID notes tidak ditemukan");
+
+      const newStatus = note.status === "Open" ? "Closed" : "Open";
+      const res = await fetch(`/api/notes/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...note, status: newStatus }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Update local state
+      const updatedNotes = [...dataNotes];
+      updatedNotes[index] = { ...note, status: newStatus };
+      setDataNotes(updatedNotes);
+
+      // Trigger navbar counter update
+      window.dispatchEvent(new CustomEvent("notesUpdated"));
+    } catch (error) {
+      alert(`Gagal mengubah status: ${error.message}`);
+    }
+  };
+
   const clearAllFilters = () => {
     setSearchTerm("");
     setStatusFilter("");
@@ -493,15 +519,19 @@ function Notes() {
                       {note.pesan}
                     </td>
                     <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
+                      <button
+                        onClick={() => handleStatusToggle(note, index)}
+                        className={`px-2 py-1 text-xs rounded-full transition-colors cursor-pointer hover:opacity-80 ${
                           note.status === "Open"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                        }`}
+                        title={`Klik untuk mengubah ke ${
+                          note.status === "Open" ? "Closed" : "Open"
                         }`}
                       >
                         {note.status}
-                      </span>
+                      </button>
                     </td>
                   </tr>
                 ))

@@ -71,30 +71,31 @@ function Navbar() {
     setMobileOpen(false);
   }
 
-  // Load notes count from localStorage
+  // Load notes count from database (only Open status)
   useEffect(() => {
-    const loadNotesCount = () => {
-      const savedData = localStorage.getItem("dataNotes");
-      if (savedData) {
-        const notes = JSON.parse(savedData);
-        setNotesCount(notes.length);
+    const loadNotesCount = async () => {
+      try {
+        const res = await fetch("/api/notes");
+        if (res.ok) {
+          const notes = await res.json();
+          // Count only notes with status "Open"
+          const openNotesCount = notes.filter(
+            (note) => note.status === "Open"
+          ).length;
+          setNotesCount(openNotesCount);
+        }
+      } catch (error) {
+        console.error("Gagal memuat jumlah notes:", error);
+        setNotesCount(0);
       }
     };
 
     loadNotesCount();
 
-    // Listen for storage changes
-    const handleStorageChange = () => {
-      loadNotesCount();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    // Also listen for custom events when data changes in same tab
+    // Listen for custom events when data changes in same tab
     window.addEventListener("notesUpdated", loadNotesCount);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("notesUpdated", loadNotesCount);
     };
   }, []);
