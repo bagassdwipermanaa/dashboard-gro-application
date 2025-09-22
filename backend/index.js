@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const mysql = require("mysql2/promise");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const port = Number(process.env.PORT) || 8004;
@@ -1104,11 +1105,8 @@ app.post("/api/auth/login", async (req, res) => {
 
         let passwordMatch = false;
         if (isHashed) {
-          // For hashed passwords, we need bcrypt to compare
-          // For now, let's try some common passwords
-          const commonPasswords = ["hpi1233", "admin123", "password", "123456"];
-          // This is a temporary solution - in production use bcrypt.compare()
-          passwordMatch = commonPasswords.includes(password);
+          // Compare using bcrypt for hashed passwords
+          passwordMatch = await bcrypt.compare(password, user.PASSWORD);
         } else {
           // Plain text comparison
           passwordMatch = user.PASSWORD === password;
@@ -1365,20 +1363,44 @@ app.put("/api/auth/update-password", async (req, res) => {
 
       const user = users[0];
 
-      // Verify old password (assuming passwords are stored as plain text for now)
-      // In production, you should use proper password hashing
-      if (user[passwordField] !== oldPassword) {
-        return res.status(400).json({
-          success: false,
-          message: "Password lama tidak sesuai",
-        });
-      }
+      // Verify old password
+      if (userType === "admin") {
+        const isHashed = (user[passwordField] || "")
+          .toString()
+          .startsWith("$2b$");
+        let oldOk = false;
+        if (isHashed) {
+          oldOk = await bcrypt.compare(oldPassword, user[passwordField]);
+        } else {
+          oldOk = user[passwordField] === oldPassword;
+        }
+        if (!oldOk) {
+          return res.status(400).json({
+            success: false,
+            message: "Password lama tidak sesuai",
+          });
+        }
 
-      // Update password
-      await conn.query(
-        `UPDATE ${tableName} SET ${passwordField} = ? WHERE ${usernameField} = ?`,
-        [newPassword, username]
-      );
+        // Hash new password for admin
+        const saltRounds = 10;
+        const hashed = await bcrypt.hash(newPassword, saltRounds);
+        await conn.query(
+          `UPDATE ${tableName} SET ${passwordField} = ? WHERE ${usernameField} = ?`,
+          [hashed, username]
+        );
+      } else {
+        // GRO assumed plain text; verify and update as-is
+        if (user[passwordField] !== oldPassword) {
+          return res.status(400).json({
+            success: false,
+            message: "Password lama tidak sesuai",
+          });
+        }
+        await conn.query(
+          `UPDATE ${tableName} SET ${passwordField} = ? WHERE ${usernameField} = ?`,
+          [newPassword, username]
+        );
+      }
 
       res.json({
         success: true,
