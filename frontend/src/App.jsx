@@ -27,7 +27,6 @@ import DaftarPejabat from "./components/DaftarPejabat";
 import TambahPejabat from "./components/TambahPejabat";
 import EditPejabat from "./components/EditPejabat";
 import ChangePassword from "./components/ChangePassword";
-import Profile from "./components/Profile";
 import AktivitasPengguna from "./components/AktivitasPengguna";
 
 function App() {
@@ -79,7 +78,6 @@ function App() {
                 <Route path="edit-pejabat" element={<EditPejabat />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="change-password" element={<ChangePassword />} />
-                <Route path="profile" element={<Profile />} />
                 <Route
                   path="master/aktivitas-pengguna"
                   element={<AktivitasPengguna />}

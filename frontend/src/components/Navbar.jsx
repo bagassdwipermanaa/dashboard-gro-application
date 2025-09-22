@@ -414,13 +414,6 @@ function Navbar() {
               {openMenu === "user" ? (
                 <div className="absolute right-0 mt-2 w-44 rounded-xl border bg-white/90 backdrop-blur shadow-md animate-[fadeIn_.2s_ease-out]">
                   <Link
-                    to="/profile"
-                    className="block px-3 py-2 text-sm hover:bg-gray-50"
-                    onClick={closeAll}
-                  >
-                    Profil
-                  </Link>
-                  <Link
                     to="/settings"
                     className="block px-3 py-2 text-sm hover:bg-gray-50"
                     onClick={closeAll}
