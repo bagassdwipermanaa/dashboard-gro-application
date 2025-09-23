@@ -24,8 +24,16 @@ function Login() {
         return;
       }
 
-      // Normalisasi base URL API agar tidak dobel /api dan tanpa slash di akhir
-      const rawBase = import.meta.env.VITE_API_URL || window.location.origin;
+      // Normalisasi base URL API - paksa ke backend lokal saat akses via HTTP dev
+      const isDevHttp =
+        window.location.protocol === "http:" &&
+        (window.location.hostname === "10.69.255.196" ||
+          window.location.hostname === "localhost");
+
+      const rawBase = isDevHttp
+        ? `http://${window.location.hostname}:8004`
+        : import.meta.env.VITE_API_URL || window.location.origin;
+
       const base = (rawBase || "").replace(/\/$/, "");
       const endpoint = base.endsWith("/api")
         ? `${base}/auth/login`
