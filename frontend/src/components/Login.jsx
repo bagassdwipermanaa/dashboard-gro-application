@@ -24,10 +24,14 @@ function Login() {
         return;
       }
 
-      const API_URL =
-        import.meta.env.VITE_API_URL ||
-        `${window.location.protocol}//${window.location.hostname}:8004`;
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      // Normalisasi base URL API agar tidak dobel /api dan tanpa slash di akhir
+      const rawBase = import.meta.env.VITE_API_URL || window.location.origin;
+      const base = (rawBase || "").replace(/\/$/, "");
+      const endpoint = base.endsWith("/api")
+        ? `${base}/auth/login`
+        : `${base}/api/auth/login`;
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
