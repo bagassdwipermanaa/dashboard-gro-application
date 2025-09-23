@@ -1524,7 +1524,7 @@ function Home() {
       )}
 
       {/* Add custom CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from {
             opacity: 0;
